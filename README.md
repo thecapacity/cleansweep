@@ -7,7 +7,7 @@ Per: https://flask.palletsprojects.com/en/1.1.x/installation/
 ```
 $ python3 -m venv cleansweep
 
-$ . venv/bin/activate
+$ . cleansweep/bin/activate
 $ export FLASK_APP=~/bin/cleansweep
 $ export FLASK_ENV=development
 $ flask run
