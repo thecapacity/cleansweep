@@ -7,6 +7,7 @@ from flask import Flask, url_for, render_template, request, redirect, g, current
 from markupsafe import escape
 
 def create_app(test_config=None):
+    from . import db
 
     app = Flask(__name__, instance_relative_config=True)
 
@@ -32,5 +33,6 @@ def create_app(test_config=None):
     def index():
         return 'Hello, World!'
 
+    db.init_app(app)
 
     return app
