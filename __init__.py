@@ -1,6 +1,4 @@
 import os
-import hashlib
-import dataset
 import json
 
 from flask import Flask, url_for, render_template, request, redirect, g, current_app
