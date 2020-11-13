@@ -28,8 +28,23 @@ def create_app(test_config=None):
         pass
 
     @app.route('/')
-    def index():
-        return 'Hello, World!'
+    def index(directory = None):
+        if not directory: directory = request.args.get('directory')
+        if not directory: directory = os.getcwd()
+        app.logger.debug("Scanning Directory: %s" % (directory) )
+        ret = { }
+ 
+        for d in [ d for d in os.scandir(directory) if d.is_dir() ]:
+            app.logger.debug("\t > %s" % (d.path) )
+
+            ret[d.path] = {'path': d.path, 'name': d.name }
+            try:
+                ret[d.path]['sub_dirs'] = [ s.name for s in os.scandir(d) if os.path.isdir(s) ]
+                ret[d.path]['n_sub_dirs'] = len( ret[d.path]['sub_dirs'] ) 
+            except:
+                continue
+
+        return json.dumps(ret), {'Content-Type': 'application/json'}
 
     db.init_app(app)
 
