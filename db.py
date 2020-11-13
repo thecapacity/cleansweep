@@ -90,6 +90,17 @@ def db_ls_files_command():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
 
+@click.command('db-ls-dirs')
+@with_appcontext
+def db_ls_dirs_command():
+    """List dirs in the database."""
+    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
+    ds = dataset.connect(DATABASE_PATH)
+
+    for d in ds['dirs'].all():
+        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    return
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
