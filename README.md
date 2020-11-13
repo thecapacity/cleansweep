@@ -12,3 +12,11 @@ $ export FLASK_APP=~/bin/cleansweep
 $ export FLASK_ENV=development
 $ flask run
 ```
+
+### Commands:
+```  
+  db-ls-dirs   List dirs in the database.
+  db-ls-files  List files in the database.
+  drop-db      Drop the database file, if it exists.
+  init-db      Clear the existing data and create new tables.
+```
