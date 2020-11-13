@@ -47,6 +47,8 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
+    table = db['files']
+    table = db['dirs']
 
 def drop_db():
     db = close_db()
@@ -76,7 +78,33 @@ def drop_db_command():
     drop_db()
     click.echo('Database Deleted')
 
+@click.command('db-ls-files')
+@with_appcontext
+def db_ls_files_command():
+    """List files in the database."""
+    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
+    ds = dataset.connect(DATABASE_PATH)
+
+    for d in ds['files'].all():
+        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    return
+
+@click.command('db-ls-dirs')
+@with_appcontext
+def db_ls_dirs_command():
+    """List dirs in the database."""
+    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
+    ds = dataset.connect(DATABASE_PATH)
+
+    for d in ds['dirs'].all():
+        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    return
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
     app.cli.add_command(drop_db_command)
+
+    app.cli.add_command(db_ls_files_command)
+    app.cli.add_command(db_ls_dirs_command)
+
