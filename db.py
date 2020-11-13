@@ -48,6 +48,8 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
+    table = db['files']
+    table = db['dirs']
 
 def drop_db():
     db = close_db()
