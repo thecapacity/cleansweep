@@ -88,8 +88,7 @@ def drop_db_command():
 @with_appcontext
 def db_ls_files_command():
     """List files in the database."""
-    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
-    ds = dataset.connect(DATABASE_PATH)
+    db, ds = get_db()
 
     for d in ds['files'].all():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
@@ -99,8 +98,7 @@ def db_ls_files_command():
 @with_appcontext
 def db_ls_dirs_command():
     """List dirs in the database."""
-    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
-    ds = dataset.connect(DATABASE_PATH)
+    db, ds = get_db()
 
     for d in ds['dirs'].all():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
@@ -111,9 +109,6 @@ def db_ls_dirs_command():
 @with_appcontext
 def bless_command(dir_name = None):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
-    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
-    ds = dataset.connect(DATABASE_PATH)
-
     if not dir_name: dir_name = os.getcwd()
 
     click.echo('Blessing / %s' % click.format_filename(dir_name))
