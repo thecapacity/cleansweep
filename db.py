@@ -107,10 +107,10 @@ def db_ls_dirs_command():
     return
 
 @click.command('bless-dir')
-@click.option('--name', default=False)
+@click.option('--dir_name', default=False)
 @with_appcontext
-def bless_command(name = None):
-    """Populate the database wih definitive files from current dir"""
+def bless_command(dir_name = None):
+    """Populate the database wih confirmed files - IGNORES hidden .* files"""
     DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
     ds = dataset.connect(DATABASE_PATH)
 
