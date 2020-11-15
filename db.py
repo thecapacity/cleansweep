@@ -116,7 +116,7 @@ def bless_command(dir_name = None):
 
     if not dir_name: dir_name = os.getcwd()
 
-    click.echo('Blessing... %s' % click.format_filename(dir_name))
+    click.echo('Blessing / %s' % click.format_filename(dir_name))
 
     db, ds = get_db()
     files = ds['files']
