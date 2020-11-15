@@ -116,7 +116,7 @@ def bless_command(dir_name = None):
 
     db, ds = get_db()
     files = ds['files']
-    dirs = ds['dirs'] ## Currently Unuses - no files being inserted
+    dirs = ds['dirs'] ## Currently Unused - no files being inserted
 
     sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
     child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
