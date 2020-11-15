@@ -106,6 +106,34 @@ def db_ls_dirs_command():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
 
+@click.command('db-ls-dir-top')
+@click.option('--num', default=False)
+@click.option('--name', default=False)
+@with_appcontext
+def db_dir_top_command(num = None, name = None):
+    """Return top `n` dirs based on n_sub_dirs."""
+    if not num: num = 2
+
+    db, ds = get_db()
+    table = ds.load_table('dirs')
+
+    if not name:
+        click.echo('Top %s dir(s) by number of sub-directories...' % num)
+        for d in table.find(order_by='-n_sub_dirs', _limit=num):
+            click.echo('\t > %s' % click.format_filename( json.dumps(d['path']) ) )
+    if name:
+        click.echo('Top %s dir(s) with the same names...' % num)
+
+        statement = 'SELECT path, name, COUNT(*) c FROM dirs GROUP BY name \
+                                        ORDER BY c DESC LIMIT :max_num'
+
+        for row in ds.query(statement, max_num=num):
+            click.echo('\t %i > %s @ %s' % (row['c'], 
+                            click.format_filename(row['name']),
+                            click.format_filename(row['path'])) )
+    else:
+        click.echo('Top %s dir(s) by UNKNOWN...')
+
 @click.command('bless-dir')
 @click.option('--dir_name', default=False)
 @with_appcontext
@@ -165,6 +193,7 @@ def init_app(app):
 
     app.cli.add_command(db_ls_files_command) #list files in database
     app.cli.add_command(db_ls_dirs_command) #list dirs in database - currently none
+    app.cli.add_command(db_dir_top_command) #list top `n` dirs in database by subdir
 
     app.cli.add_command(bless_command) # Recursively scan directory and add all non-zero files
 
