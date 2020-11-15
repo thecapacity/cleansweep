@@ -142,6 +142,7 @@ def bless_command(dir_name = None):
                         'f_hash': hash_func(f.path),
                         'blessed': True,
                         'parent': os.path.dirname(f.path),
+                        #'updated_at': int(time.time()),
                         'path': f.path, }, ['path'] )
     #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
