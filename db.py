@@ -10,6 +10,12 @@ import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
+def file_check(f):
+    return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+
+def dir_check(d):
+    return d.is_dir() and not d.name.startswith('.')
+
 def hash_func(file_name):
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
@@ -35,7 +41,7 @@ def get_db():
     if 'ds' not in g:
         g.ds = dataset.connect(g.DATABASE_PATH)
 
-    return g.db
+    return (g.db, g.ds)
 
 def close_db(e=None):
     db = g.pop('db', None)
@@ -46,9 +52,9 @@ def close_db(e=None):
     return db
 
 def init_db():
-    db = get_db()
-    table = db['files']
-    table = db['dirs']
+    db, ds = get_db()
+    table = ds['files']
+    table = ds['dirs']
 
 def drop_db():
     db = close_db()
@@ -100,6 +106,48 @@ def db_ls_dirs_command():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
 
+@click.command('bless-dir')
+@click.option('--dir_name', default=False)
+@with_appcontext
+def bless_command(dir_name = None):
+    """Populate the database wih confirmed files - IGNORES hidden .* files"""
+    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
+    ds = dataset.connect(DATABASE_PATH)
+
+    if not dir_name: dir_name = os.getcwd()
+
+    click.echo('Blessing / %s' % click.format_filename(dir_name))
+
+    db, ds = get_db()
+    files = ds['files']
+    dirs = ds['dirs']
+
+    sub_dirs = [ d for d in os.scandir(dir_name) if dir_check(d) ]
+    child_files = [ f for f in os.scandir(dir_name) if file_check(f) ]
+
+    for d in sub_dirs:
+        try:
+            click.echo("\t > %s" % (d.path) )
+
+            child_files.extend( [f for f in os.scandir(d.path) if file_check(f)] )
+            child_dirs = [ d for d in os.scandir(d) if dir_check(d) ]
+            if len(child_dirs): sub_dirs.extend(child_dirs)
+
+        except:
+            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
+            continue
+
+    for f in child_files:
+        click.echo('\t*> %s' % click.format_filename(f.path) )
+        files.upsert( { 'name': f.name,
+                        'f_hash': hash_func(f.path),
+                        'blessed': True,
+                        'parent': os.path.dirname(f.path),
+                        'path': f.path, }, ['path'] )
+    #
+    #files.create_index(['path', 'name', 'parent', 'f_hash'])
+    #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
@@ -107,4 +155,6 @@ def init_app(app):
 
     app.cli.add_command(db_ls_files_command)
     app.cli.add_command(db_ls_dirs_command)
+
+    app.cli.add_command(bless_command)
 
