@@ -138,7 +138,7 @@ def bless_command(dir_name = None):
             continue
 
     for f in child_files:
-        click.echo('    bless > %s' % click.format_filename(f.path) )
+        click.echo('\t*> %s' % click.format_filename(f.path) )
         files.upsert( { 'name': f.name,
                         'f_hash': hash_func(f.path),
                         'blessed': True,
