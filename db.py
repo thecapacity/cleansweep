@@ -100,6 +100,18 @@ def db_ls_dirs_command():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
 
+@click.command('bless-dir')
+@click.option('--name', default=False)
+@with_appcontext
+def bless_command(name = None):
+    """Populate the database wih definitive files from current dir"""
+    DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
+    ds = dataset.connect(DATABASE_PATH)
+
+    if not name: name = os.getcwd()
+
+    click.echo('Blessing... %s' % click.format_filename(name))
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
@@ -107,4 +119,6 @@ def init_app(app):
 
     app.cli.add_command(db_ls_files_command)
     app.cli.add_command(db_ls_dirs_command)
+
+    app.cli.add_command(bless_command)
 
