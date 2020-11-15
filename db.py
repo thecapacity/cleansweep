@@ -148,8 +148,6 @@ def bless_command(dir_name = None):
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
-    click.echo('...Blessing Finished')
-
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
