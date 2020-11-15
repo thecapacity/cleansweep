@@ -150,8 +150,8 @@ def init_app(app):
     app.cli.add_command(init_db_command)
     app.cli.add_command(drop_db_command)
 
-    app.cli.add_command(db_ls_files_command)
-    app.cli.add_command(db_ls_dirs_command)
+    app.cli.add_command(db_ls_files_command) #list files in database
+    app.cli.add_command(db_ls_dirs_command) #list dirs in database - currently none
 
-    app.cli.add_command(bless_command)
+    app.cli.add_command(bless_command) # Recursively scan directory and add all non-zero files
 
