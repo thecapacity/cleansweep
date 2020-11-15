@@ -10,6 +10,12 @@ import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
+def file_check(f):
+    return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+
+def dir_check(d):
+    return d.is_dir() and not d.name.startswith('.')
+
 def hash_func(file_name):
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
@@ -108,9 +114,41 @@ def bless_command(name = None):
     DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
     ds = dataset.connect(DATABASE_PATH)
 
-    if not name: name = os.getcwd()
+    if not dir_name: dir_name = os.getcwd()
 
-    click.echo('Blessing... %s' % click.format_filename(name))
+    click.echo('Blessing... %s' % click.format_filename(dir_name))
+
+    db, ds = get_db()
+    files = ds['files']
+    dirs = ds['dirs']
+
+    sub_dirs = [ d for d in os.scandir(dir_name) if dir_check(d) ]
+    child_files = [ f for f in os.scandir(dir_name) if file_check(f) ]
+
+    for d in sub_dirs:
+        try:
+            click.echo("\t > %s" % (d.path) )
+
+            child_files.extend( [f for f in os.scandir(d.path) if file_check(f)] )
+            child_dirs = [ d for d in os.scandir(d) if dir_check(d) ]
+            if len(child_dirs): sub_dirs.extend(child_dirs)
+
+        except:
+            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
+            continue
+
+    for f in child_files:
+        click.echo('    bless > %s' % click.format_filename(f.path) )
+        files.upsert( { 'name': f.name,
+                        'f_hash': hash_func(f.path),
+                        'blessed': True,
+                        'parent': os.path.dirname(f.path),
+                        'path': f.path, }, ['path'] )
+    #
+    #files.create_index(['path', 'name', 'parent', 'f_hash'])
+    #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
+
+    click.echo('...Blessing Finished')
 
 def init_app(app):
     app.teardown_appcontext(close_db)
