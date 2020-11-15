@@ -131,6 +131,7 @@ def bless_command(dir_name = None):
 
         except:
             if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
+#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
             continue
 
     for f in child_files:
