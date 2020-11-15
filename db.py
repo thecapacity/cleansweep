@@ -117,7 +117,7 @@ def bless_command(dir_name = None):
 
     db, ds = get_db()
     files = ds['files']
-    dirs = ds['dirs']
+    dirs = ds['dirs'] ## Currently Unused - no files being inserted
 
     ### Note, this ignores the top_level_directory and does NOT add it to the database
     sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
@@ -146,7 +146,7 @@ def bless_command(dir_name = None):
                         'path': f.path, }, ['path'] )
 
     for d in sub_dirs:
-        click.echo('\t \ %s' % click.format_filename(f.path) )
+        click.echo('\t \ %s' % click.format_filename(d.path) )
         dirs.upsert( { 'name': d.name,
                         'blessed': True,
                         'parent': os.path.dirname(d.path),
