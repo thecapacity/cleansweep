@@ -10,10 +10,10 @@ import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
-def file_check(f):
+def check_file(f):
     return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
-def dir_check(d):
+def check_dir(d):
     return d.is_dir() and not d.name.startswith('.')
 
 def hash_func(file_name):
@@ -117,8 +117,8 @@ def bless_command(dir_name = None):
     files = ds['files']
     dirs = ds['dirs']
 
-    sub_dirs = [ d for d in os.scandir(dir_name) if dir_check(d) ]
-    child_files = [ f for f in os.scandir(dir_name) if file_check(f) ]
+    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
+    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
 
     for d in sub_dirs:
         try:
