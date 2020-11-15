@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import sqlite3
 import time
@@ -124,8 +125,8 @@ def bless_command(dir_name = None):
         try:
             click.echo("\t > %s" % (d.path) )
 
-            child_files.extend( [f for f in os.scandir(d.path) if file_check(f)] )
-            child_dirs = [ d for d in os.scandir(d) if dir_check(d) ]
+            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
+            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
             if len(child_dirs): sub_dirs.extend(child_dirs)
 
         except:
