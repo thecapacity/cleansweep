@@ -41,7 +41,7 @@ def get_db():
     if 'ds' not in g:
         g.ds = dataset.connect(g.DATABASE_PATH)
 
-    return g.db
+    return (g.db, g.ds)
 
 def close_db(e=None):
     db = g.pop('db', None)
@@ -52,9 +52,9 @@ def close_db(e=None):
     return db
 
 def init_db():
-    db = get_db()
-    table = db['files']
-    table = db['dirs']
+    db, ds = get_db()
+    table = ds['files']
+    table = ds['dirs']
 
 def drop_db():
     db = close_db()
