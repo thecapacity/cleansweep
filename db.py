@@ -176,7 +176,7 @@ def bless_command(dir_name = None):
 
     db, ds = get_db()
     files = ds['files']
-    dirs = ds['dirs'] ## Currently Unused - no files being inserted
+    dirs = ds['dirs']
 
     ### Note, this ignores the top_level_directory and does NOT add it to the database
     sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
