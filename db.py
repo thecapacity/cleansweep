@@ -42,6 +42,7 @@ def get_files(dir_name = None):
 
     return child_files, sub_dirs
 
+    ## FIXME: eventually consider yield vs. building a full list
     """for f in os.listdir(path):
         if check_file( os.path.join(path, f) ):
             yield f
