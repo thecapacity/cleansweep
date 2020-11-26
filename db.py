@@ -218,3 +218,21 @@ def bless_command(dir_name = None):
     #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
+
+@click.command('ls')
+@with_appcontext
+def ls_fs_command():
+    """List files on the filesystem based on database."""
+    file_list, dirs = get_files()
+
+    for f in file_list:
+#        click.echo('\t*> %s' % click.format_filename(f.path) ) 
+
+        file_node = objs.File_Node(f.path)
+        click.echo('%s' % (file_node) )
+        click.echo('\t id   > %s' % click.format_filename(file_node.id) ) 
+        click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
+        click.echo('\t path > %s' % click.format_filename(file_node.path) ) 
+        click.echo('\t hash > %s' % (file_node.sha1) ) 
+        click.echo('\t dir  > %s' % (file_node.parent) ) 
+        click.echo(' ')
