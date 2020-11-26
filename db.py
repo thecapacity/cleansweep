@@ -7,6 +7,7 @@ import shutil
 import hashlib
 
 import dataset
+import colored
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
