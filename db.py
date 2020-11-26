@@ -7,15 +7,46 @@ import shutil
 import hashlib
 
 import dataset
+import colored
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+
+from . import objs
 
 def check_file(f):
     return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
 def check_dir(d):
     return d.is_dir() and not d.name.startswith('.')
+
+def get_files(dir_name = None):
+    if not dir_name: dir_name = os.getcwd()
+
+    ### Note, this ignores the top_level_directory (i.e. current working directory)
+    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
+    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
+
+    for d in sub_dirs:
+        try:
+#            click.echo("\t > %s" % (d.path) )
+
+            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
+            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
+            if len(child_dirs): sub_dirs.extend(child_dirs)
+
+        except:
+            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
+#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
+            continue
+
+    return child_files, sub_dirs
+
+    ## FIXME: eventually consider yield vs. building a full list
+    """for f in os.listdir(path):
+        if check_file( os.path.join(path, f) ):
+            yield f
+    """
 
 def hash_func(file_name):
     BLOCKSIZE = 65536
@@ -145,7 +176,7 @@ def bless_command(dir_name = None):
 
     db, ds = get_db()
     files = ds['files']
-    dirs = ds['dirs'] ## Currently Unused - no files being inserted
+    dirs = ds['dirs']
 
     ### Note, this ignores the top_level_directory and does NOT add it to the database
     sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
@@ -166,6 +197,7 @@ def bless_command(dir_name = None):
 
     for f in child_files:
         click.echo('\t*> %s' % click.format_filename(f.path) )
+        ## FIXME: change to use File and Dir Objects
         files.upsert( { 'name': f.name,
                         'f_hash': hash_func(f.path),
                         'blessed': True,
@@ -175,6 +207,7 @@ def bless_command(dir_name = None):
 
     for d in sub_dirs:
         click.echo('\t \ %s' % click.format_filename(d.path) )
+        ## FIXME: change to use File and Dir Objects
         dirs.upsert( { 'name': d.name,
                         'blessed': True,
                         'parent': os.path.dirname(d.path),
@@ -186,14 +219,20 @@ def bless_command(dir_name = None):
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
-    app.cli.add_command(drop_db_command)
+@click.command('ls')
+@with_appcontext
+def ls_fs_command():
+    """List files on the filesystem based on database."""
+    file_list, dirs = get_files()
 
-    app.cli.add_command(db_ls_files_command) #list files in database
-    app.cli.add_command(db_ls_dirs_command) #list dirs in database - currently none
-    app.cli.add_command(db_dir_top_command) #list top `n` dirs in database by subdir
+    for f in file_list:
+#        click.echo('\t*> %s' % click.format_filename(f.path) ) 
 
-    app.cli.add_command(bless_command) # Recursively scan directory and add all non-zero files
-
+        file_node = objs.File_Node(f.path)
+        click.echo('%s' % (file_node) )
+        click.echo('\t id   > %s' % click.format_filename(file_node.id) ) 
+        click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
+        click.echo('\t path > %s' % click.format_filename(file_node.path) ) 
+        click.echo('\t hash > %s' % (file_node.sha1) ) 
+        click.echo('\t dir  > %s' % (file_node.parent) ) 
+        click.echo(' ')
