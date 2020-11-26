@@ -185,15 +185,3 @@ def bless_command(dir_name = None):
     #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
-    app.cli.add_command(drop_db_command)
-
-    app.cli.add_command(db_ls_files_command) #list files in database
-    app.cli.add_command(db_ls_dirs_command) #list dirs in database - currently none
-    app.cli.add_command(db_dir_top_command) #list top `n` dirs in database by subdir
-
-    app.cli.add_command(bless_command) # Recursively scan directory and add all non-zero files
-

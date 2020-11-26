@@ -46,6 +46,17 @@ def create_app(test_config=None):
 
         return json.dumps(ret), {'Content-Type': 'application/json'}
 
-    db.init_app(app)
+    def init_app(app):
+        app.teardown_appcontext(db.close_db)
+        app.cli.add_command(db.init_db_command)
+        app.cli.add_command(db.drop_db_command)
+
+        app.cli.add_command(db.db_ls_files_command) #list files in database
+        app.cli.add_command(db.db_ls_dirs_command) #list dirs in database - currently none
+        app.cli.add_command(db.db_dir_top_command) #list top `n` dirs in database by subdir
+
+        app.cli.add_command(db.bless_command) # Recursively scan dir and add all non-zero files
+
+    init_app(app)
 
     return app
