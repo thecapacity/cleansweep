@@ -20,6 +20,33 @@ def check_file(f):
 def check_dir(d):
     return d.is_dir() and not d.name.startswith('.')
 
+def get_files(dir_name = None):
+    if not dir_name: dir_name = os.getcwd()
+
+    ### Note, this ignores the top_level_directory (i.e. current working directory)
+    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
+    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
+
+    for d in sub_dirs:
+        try:
+#            click.echo("\t > %s" % (d.path) )
+
+            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
+            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
+            if len(child_dirs): sub_dirs.extend(child_dirs)
+
+        except:
+            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
+#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
+            continue
+
+    return child_files, sub_dirs
+
+    """for f in os.listdir(path):
+        if check_file( os.path.join(path, f) ):
+            yield f
+    """
+
 def hash_func(file_name):
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
