@@ -56,6 +56,7 @@ def create_app(test_config=None):
         app.cli.add_command(db.db_dir_top_command) #list top `n` dirs in database by subdir
 
         app.cli.add_command(db.bless_command) # Recursively scan dir and add all non-zero files
+        app.cli.add_command(db.ls_fs_command) # Recursively scan dir and add all non-zero files
 
     init_app(app)
 
