@@ -12,7 +12,7 @@ import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
-from . import objs
+from . import AppDB
 
 def check_file(f):
     return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
@@ -59,70 +59,31 @@ def hash_func(file_name):
             buf = afile.read(BLOCKSIZE)
         return hasher.hexdigest()
 
-def get_db():
-    if 'db' not in g:
-        g.DATABASE_PATH = 'sqlite:///' + current_app.config['DATABASE']
-
-        # https://flask.palletsprojects.com/en/1.1.x/patterns/sqlite3/#sqlite3
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
-    if 'ds' not in g:
-        g.ds = dataset.connect(g.DATABASE_PATH)
-
-    return (g.db, g.ds)
-
-def close_db(e=None):
-    ds = g.pop('ds', None)
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
-
-    return db
-
-def init_db():
-    db, ds = get_db()
-    table = ds['files']
-    table = ds['dirs']
-
-def drop_db():
-    db = close_db()
-
-    DATABASE_PATH = current_app.config['DATABASE']
-
-    try:
-        os.remove( DATABASE_PATH )
-    except:
-        pass
-    try:
-        os.rmdir( os.path.dirname(DATABASE_PATH) )
-    except:
-        pass
+def close_db_command(e = None):
+    """Close the database"""
+    AppDB.close_db(e)
 
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
     """Clear the existing data and create new tables."""
-    init_db()
+    AppDB.init_db()
     click.echo('Initialized the database: %s' % (g.DATABASE_PATH))
 
 @click.command('drop-db')
 @with_appcontext
 def drop_db_command():
     """Drop the database file, if it exists."""
-    drop_db()
-    click.echo('Database Deleted')
+    AppDB.drop_db()
+    click.echo('Deleted the database')
 
 @click.command('db-ls-files')
 @with_appcontext
 def db_ls_files_command():
     """List files in the database."""
-    db, ds = get_db()
+    db, ds = AppDB.get_db()
 
+    click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
     for d in ds['files'].all():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
@@ -131,8 +92,9 @@ def db_ls_files_command():
 @with_appcontext
 def db_ls_dirs_command():
     """List dirs in the database."""
-    db, ds = get_db()
+    db, ds = AppDB.get_db()
 
+    click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
     for d in ds['dirs'].all():
         click.echo('%s' % click.format_filename(json.dumps(d)) )
     return
@@ -144,15 +106,16 @@ def db_ls_dirs_command():
 def db_dir_top_command(num = None, name = None):
     """Return top `n` dirs based on n_sub_dirs."""
     if not num: num = 2
+    ### FIXME: --name requires an argument but isn't used should be made a flag
 
-    db, ds = get_db()
+    db, ds = AppDB.get_db()
     table = ds.load_table('dirs')
 
     if not name:
-        click.echo('Top %s dir(s) by number of sub-directories...' % num)
+        click.echo('Top %s dir(s) by number of sub-directories...' % (num) )
         for d in table.find(order_by='-n_sub_dirs', _limit=num):
             click.echo('\t > %s' % click.format_filename( json.dumps(d['path']) ) )
-    if name:
+    elif name: ## FIXME: Will error out if database has no data
         click.echo('Top %s dir(s) with the same names...' % num)
 
         statement = 'SELECT path, name, COUNT(*) c FROM dirs GROUP BY name \
@@ -163,7 +126,7 @@ def db_dir_top_command(num = None, name = None):
                             click.format_filename(row['name']),
                             click.format_filename(row['path'])) )
     else:
-        click.echo('Top %s dir(s) by UNKNOWN...')
+        click.echo('Top %s dir(s) UNKNOWN ERROR...' % (num) )
 
 @click.command('bless-dir')
 @click.option('--dir_name', default=False)
@@ -174,7 +137,7 @@ def bless_command(dir_name = None):
 
     click.echo('Blessing / %s' % click.format_filename(dir_name))
 
-    db, ds = get_db()
+    db, ds = AppDB.get_db()
     files = ds['files']
     dirs = ds['dirs']
 
@@ -228,7 +191,7 @@ def ls_fs_command():
     for f in file_list:
 #        click.echo('\t*> %s' % click.format_filename(f.path) ) 
 
-        file_node = objs.File_Node(f.path)
+        file_node = AppDB.File_Node(f.path)
         click.echo('%s' % (file_node) )
         click.echo('\t id   > %s' % click.format_filename(file_node.id) ) 
         click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
