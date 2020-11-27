@@ -77,6 +77,31 @@ def drop_db_command():
     AppDB.drop_db()
     click.echo('Deleted the database')
 
+@click.command('db-ls')
+@click.option('--files/--no-files', default=True)
+@click.option('--dirs/--no-dirs', default=False)
+@click.option('--hashes/--no-hashes', default=False)
+@with_appcontext
+def db_ls_command(files = True, dirs = False, hashes = False):
+    """List entries in the database."""
+    db, ds = AppDB.get_db()
+
+    if files:
+        click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
+        for d in ds['files'].all():
+            click.echo('%s' % click.format_filename(json.dumps(d)) )
+
+    if dirs:
+        click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
+        for d in ds['dirs'].all():
+            click.echo('%s' % click.format_filename(json.dumps(d)) )
+
+    if hashes:
+        return ## FIXME: Future expansion
+        click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
+        for d in ds['hashes'].all():
+            click.echo('%s' % click.format_filename(json.dumps(d)) )
+
 @click.command('db-ls-files')
 @with_appcontext
 def db_ls_files_command():

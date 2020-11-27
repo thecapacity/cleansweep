@@ -51,6 +51,7 @@ def create_app(test_config=None):
         app.cli.add_command(cli.init_db_command)
         app.cli.add_command(cli.drop_db_command)
 
+        app.cli.add_command(cli.db_ls_command) #More flexible list <x> in database
         app.cli.add_command(cli.db_ls_files_command) #list files in database
         app.cli.add_command(cli.db_ls_dirs_command) #list dirs in database - currently none
         app.cli.add_command(cli.db_dir_top_command) #list top `n` dirs in database by subdir
