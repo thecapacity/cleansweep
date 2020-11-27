@@ -106,7 +106,6 @@ def db_ls_dirs_command():
 def db_dir_top_command(num = None, name = None):
     """Return top `n` dirs based on n_sub_dirs."""
     if not num: num = 2
-    ### FIXME: --name requires an argument but isn't used should be made a flag
 
     db, ds = AppDB.get_db()
     table = ds.load_table('dirs')
