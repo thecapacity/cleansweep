@@ -5,7 +5,7 @@ from flask import Flask, url_for, render_template, request, redirect, g, current
 from markupsafe import escape
 
 def create_app(test_config=None):
-    from . import db
+    from . import cli
 
     app = Flask(__name__, instance_relative_config=True)
 
@@ -47,16 +47,16 @@ def create_app(test_config=None):
         return json.dumps(ret), {'Content-Type': 'application/json'}
 
     def init_app(app):
-        app.teardown_appcontext(db.close_db)
-        app.cli.add_command(db.init_db_command)
-        app.cli.add_command(db.drop_db_command)
+        app.teardown_appcontext(cli.close_db_command)
+        app.cli.add_command(cli.init_db_command)
+        app.cli.add_command(cli.drop_db_command)
 
-        app.cli.add_command(db.db_ls_files_command) #list files in database
-        app.cli.add_command(db.db_ls_dirs_command) #list dirs in database - currently none
-        app.cli.add_command(db.db_dir_top_command) #list top `n` dirs in database by subdir
+        app.cli.add_command(cli.db_ls_files_command) #list files in database
+        app.cli.add_command(cli.db_ls_dirs_command) #list dirs in database - currently none
+        app.cli.add_command(cli.db_dir_top_command) #list top `n` dirs in database by subdir
 
-        app.cli.add_command(db.bless_command) # Recursively scan dir and add all non-zero files
-        app.cli.add_command(db.ls_fs_command) # Recursively scan dir and add all non-zero files
+        app.cli.add_command(cli.bless_command) # Recursively scan dir and add all non-zero files
+        app.cli.add_command(cli.ls_fs_command) # Recursively scan dir and add all non-zero files
 
     init_app(app)
 
