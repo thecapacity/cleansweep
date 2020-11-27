@@ -166,6 +166,8 @@ def bless_command(dir_name = None):
                         'parent': os.path.dirname(f.path),
                         #'updated_at': int(time.time()),
                         'path': f.path, }, ['path'] )
+        ## FIXME: It is possible to get files with the same hash this way
+        ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
 
     for d in sub_dirs:
         click.echo('\t \ %s' % click.format_filename(d.path) )
