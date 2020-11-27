@@ -102,7 +102,6 @@ def db_ls_dirs_command():
 @click.command('db-ls-dir-top')
 @click.option('-n', '--num', default=2)
 @click.option('--name/--no-name', default=False)
-
 @with_appcontext
 def db_dir_top_command(num = None, name = None):
     """Return top `n` dirs based on n_sub_dirs."""
