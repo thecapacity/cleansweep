@@ -1,4 +1,6 @@
 import os
+import sys
+import click
 import colored
 import sqlite3
 import dataset
