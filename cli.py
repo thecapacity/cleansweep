@@ -221,7 +221,7 @@ def ls_fs_command():
 
         file_node = AppDB.File_Node(f.path)
         click.echo('%s' % (file_node) )
-        click.echo('\t id   > %s' % click.format_filename(file_node.id) ) 
+        click.echo('\t abs  > %s' % click.format_filename(file_node.abs_path) ) 
         click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
         click.echo('\t path > %s' % click.format_filename(file_node.path) ) 
         click.echo('\t hash > %s' % (file_node.sha1) ) 
