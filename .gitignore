@@ -135,4 +135,4 @@ bin/
 *.swp
 *.swo
 
-test/
+test*/
