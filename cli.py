@@ -46,13 +46,8 @@ def get_files(dir_name = None):
 #            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
             continue
 
-    return child_files, sub_dirs
-
     ## FIXME: eventually consider yield vs. building a full list
-    """for f in os.listdir(path):
-        if check_file( os.path.join(path, f) ):
-            yield f
-    """
+    return child_files, sub_dirs
 
 def close_db_command(e = None):
     """Close the database"""
