@@ -93,6 +93,34 @@ class FileNode(Node):
         self.color = colored.bg('blue')
 
         self.parent = DirNode(self.path)
+        self.blessed = False
+
+    ### FIXME: Probably a more elegant way to have the base class filter and add
+    def db_add(self):
+        """ d = AppDB.FileNode(row['path'])
+            d.db_add()
+            ### Will CREATE or UPDATE based on abs_path as unique key
+        """
+        db, ds = get_db()
+        table = ds[self.table_name]
+
+        ### FIXME: Maybe we'll want these attributes another day
+        if not self.sha1: self.get_hash()
+
+        entry = self.__dict__.copy()
+        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('color')
+        entry.pop('mtime')
+        entry.pop('atime')
+        entry.pop('size')
+        entry.pop('islink')
+        entry.pop('table_name')
+
+        try:
+            table = ds[self.table_name]
+            table.upsert(entry, ['abs_path'])
+        except:
+            click.echo( "Trying to ADD FILE: %s" % (self.abs_path) )
 
     def get_hash(self):
         if self.sha1:
