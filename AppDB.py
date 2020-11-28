@@ -1,9 +1,11 @@
 import os
 import sys
+import json
 import click
 import colored
 import sqlite3
 import dataset
+import hashlib
 
 from flask import current_app, g
 
