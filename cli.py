@@ -183,16 +183,9 @@ def bless_command(dir_name = None, **kw):
         ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
 
     for d in sub_dirs:
-        click.echo('\t \ %s' % click.format_filename(d.path) )
-        ## FIXME: change to use File and Dir Objects
-        dirs.upsert( { 'abs_path': d.path,
-                       'name': d.name,
-                       'blessed': True,
-                       'parent': os.path.dirname(d.path),
-                       'sub_dirs': json.dumps( [s.path for s in sub_dirs] ),
-                       'n_sub_dirs': len( child_dirs ),
-                       #'updated_at': int(time.time()),
-                       'path': d.path, }, ['path'] )
+        #click.echo('\t \ %s' % click.format_filename(d.path) )
+        dNode = AppDB.DirNode(d.path, [s.path for s in sub_dirs] )
+        dNode.db_add()
     #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
