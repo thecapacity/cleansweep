@@ -174,4 +174,5 @@ def ls_fs_command(dir_name = None):
             if not check_file( os.path.join(r, f) ): continue
 
             fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.test_unique()
             click.echo('%s' % (fNode) )
