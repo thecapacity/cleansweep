@@ -82,6 +82,41 @@ class Node():
     def db_delete(self):
         pass
 
+class DirNode(Node):
+    def __init__(self, abs_path):
+        Node.__init__(self, abs_path)
+
+        self.table_name = 'dirs'
+        self.parent = None
+
+        p, d = os.path.split(abs_path)
+        if d: self.parent = DirNode(p) # If d is None then we're at the top
+
+        self.color = colored.bg('dark_olive_green_3a')
+
+    def db_add(self):
+        """ d = AppDB.DirNode(row['path'])
+            d.db_add()
+            ### Will CREATE or UPDATE based on abs_path as unique key
+        """
+        db, ds = get_db()
+        table = ds[self.table_name]
+
+        ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
+        #if self.parent: self.parent.db_add()
+
+        ### FIXME: Maybe we'll want these attributes another day
+        entry = self.__dict__.copy()
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
+        entry.pop('color')
+        entry.pop('table_name')
+
+        try:
+            table = ds[self.table_name]
+            table.upsert(entry, ['abs_path'])
+        except:
+            click.echo( "Trying to ADD DIR: %s" % (self.abs_path) )
+
 class FileNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
@@ -145,37 +180,4 @@ class FileNode(Node):
     def test_unique(self):
         return self.get_hash()
 
-class DirNode(Node):
-    def __init__(self, abs_path):
-        Node.__init__(self, abs_path)
 
-        self.table_name = 'dirs'
-        self.parent = None
-
-        p, d = os.path.split(abs_path)
-        if d: self.parent = DirNode(p) # If d is None then we're at the top
-
-        self.color = colored.bg('dark_olive_green_3a')
-
-    def db_add(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
-        db, ds = get_db()
-        table = ds[self.table_name]
-
-        ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
-        #if self.parent: self.parent.db_add()
-
-        ### FIXME: Maybe we'll want these attributes another day
-        entry = self.__dict__.copy()
-        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
-        entry.pop('color')
-        entry.pop('table_name')
-
-        try:
-            table = ds[self.table_name]
-            table.upsert(entry, ['abs_path'])
-        except:
-            click.echo( "Trying to ADD DIR: %s" % (self.abs_path) )
