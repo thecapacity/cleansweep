@@ -198,13 +198,14 @@ def bless_command(dir_name = None, **kw):
     for d in sub_dirs:
         click.echo('\t \ %s' % click.format_filename(d.path) )
         ## FIXME: change to use File and Dir Objects
-        dirs.upsert( { 'name': d.name,
-                        'blessed': True,
-                        'parent': os.path.dirname(d.path),
-                        'sub_dirs': json.dumps( [s.path for s in sub_dirs] ),
-                        'n_sub_dirs': len( child_dirs ),
-                        #'updated_at': int(time.time()),
-                        'path': d.path, }, ['path'] )
+        dirs.upsert( { 'abs_path': d.path,
+                       'name': d.name,
+                       'blessed': True,
+                       'parent': os.path.dirname(d.path),
+                       'sub_dirs': json.dumps( [s.path for s in sub_dirs] ),
+                       'n_sub_dirs': len( child_dirs ),
+                       #'updated_at': int(time.time()),
+                       'path': d.path, }, ['path'] )
     #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
