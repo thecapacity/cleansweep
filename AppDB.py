@@ -130,13 +130,14 @@ class FileNode(Node):
         return h
 
 class DirNode(Node):
-    def __init__(self, abs_path):
+    def __init__(self, abs_path, sub_dirs = None):
         Node.__init__(self, abs_path)
         self.islink = os.path.islink(abs_path)
         self.ismount = os.path.ismount(abs_path)
 
         self.table_name = 'dirs'
         self.parent = None
+        self.sub_dirs = sub_dirs
 
         p, d = os.path.split(abs_path)
         if d: self.parent = DirNode(p) # If d is None then we're at the top
