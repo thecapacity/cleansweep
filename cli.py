@@ -182,6 +182,7 @@ def bless_command(dir_name = None, **kw):
         ## FIXME: It is possible to get files with the same hash this way
         ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
 
+    ## FIXME: This will add directories - with no blessed files, may not want
     for d in sub_dirs:
         #click.echo('\t \ %s' % click.format_filename(d.path) )
         dNode = AppDB.DirNode(d.path, [s.path for s in sub_dirs] )
