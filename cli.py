@@ -22,8 +22,13 @@ def check_file(f):
     else: #already a file object
         return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
+## FIXME: CURRENTLY NOT USED - maybe don't want to save dirs or chase links / mounts
 def check_dir(d):
-    return d.is_dir() and not d.name.startswith('.')
+    if isinstance(d, str):
+        d = Path(d)
+        return d.is_dir() and not d.name.startswith('.') and not d.is_link() and not d.is_mount()
+    else: #already a dir object
+        return d.is_dir() and not d.name.startswith('.')
 
 ## FIXME: Maybe don't need now - os.walk(...) seems more elegant
 def get_files(dir_name = None):
