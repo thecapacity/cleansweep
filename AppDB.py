@@ -90,10 +90,14 @@ class FileNode(Node):
         self.sha1 = None
         self.size = os.path.getsize(abs_path)
 
+        self.blessed = False
         self.color = colored.bg('blue')
 
         self.parent = DirNode(self.path)
-        self.blessed = False
+
+    def bless(self):
+        self.blessed = True
+        self.color = colored.bg('gold_3a')
 
     def db_add(self):
         """ d = AppDB.FileNode(row['path'])

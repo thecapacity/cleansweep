@@ -145,15 +145,15 @@ def bless_command(dir_name = None, **kw):
     for r, subs, files in os.walk(dir_name):
         ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
         if not check_dir(r): continue
-        click.echo('Blessing / %s' % click.format_filename(r))
+        click.echo('Blessing %s' % click.format_filename(r))
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
-            click.echo('\t   *> %s' % click.format_filename(f) )
-
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.blessed = True
+            fNode.bless()
             fNode.db_add()
+
+            click.echo('\t *> %s' % (fNode) )
 
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
