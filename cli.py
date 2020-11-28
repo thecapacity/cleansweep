@@ -82,7 +82,7 @@ def db_ls_command(files = True, dirs = False, hashes = False):
     db, ds = AppDB.get_db()
 
     if files:
-        click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
+        #click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['files'].all():
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.FileNode(d['abs_path'])
@@ -90,7 +90,7 @@ def db_ls_command(files = True, dirs = False, hashes = False):
         click.echo()
 
     if dirs:
-        click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
+        #click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['dirs'].all():
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.DirNode(d['abs_path'])
