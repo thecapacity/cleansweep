@@ -98,7 +98,7 @@ class FileNode(Node):
         h = hasher.hexdigest()
         return h
 
-class Dir_Node(Node):
+class DirNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
         self.islink = os.path.islink(abs_path)
@@ -107,6 +107,6 @@ class Dir_Node(Node):
         self.parent = None
 
         p, d = os.path.split(abs_path)
-        if d: self.parent = Dir_Node(p) # If d is None then we're at the top
+        if d: self.parent = DirNode(p) # If d is None then we're at the top
 
         self.color = colored.bg('dark_olive_green_3a')
