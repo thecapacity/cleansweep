@@ -143,9 +143,9 @@ def bless_command(dir_name = None, **kw):
     ## It is possible to get files with the same hash this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
+        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
+        if not check_dir(r): continue
         click.echo('Blessing / %s' % click.format_filename(r))
-        ## FIXME: Here's probably where to use check_dir(...)
-        ##          basically skip r or subs that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
