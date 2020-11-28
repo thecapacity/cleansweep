@@ -65,22 +65,6 @@ class Node():
     def __repr__(self):
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
-    def db_add(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
-        db, ds = get_db()
-
-        ## FIXME: Not sure if base class should know about sub-class particulars
-        ##      Use DataSet vs. SQL here
-        try:
-            statement = ''
-            for row in ds.query(statement, abs_path=self.abs_path):
-                print(row)
-        except:
-            click.echo( "Trying to ADD: %s" % (self.abs_path) )
-
     def db_delete(self):
         """ d = AppDB.DirNode(row['path'])
             d.db_delete()
