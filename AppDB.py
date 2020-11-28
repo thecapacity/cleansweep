@@ -89,9 +89,6 @@ class FileNode(Node):
         self.table_name = 'files'
         self.sha1 = None
         self.size = os.path.getsize(abs_path)
-        self.atime = os.path.getatime(abs_path)
-        self.mtime = os.path.getmtime(abs_path)
-        self.islink = os.path.islink(abs_path)
 
         self.color = colored.bg('blue')
 
@@ -114,10 +111,7 @@ class FileNode(Node):
         ## FIXME: Should also make sure DirNode is saved for its parent
         entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
         entry.pop('color')
-        entry.pop('mtime')
-        entry.pop('atime')
         entry.pop('size')
-        entry.pop('islink')
         entry.pop('table_name')
 
         try:
