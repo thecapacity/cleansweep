@@ -22,37 +22,12 @@ def check_file(f):
     else: #already a file object
         return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
-## FIXME: CURRENTLY NOT USED - maybe don't want to save dirs or chase links / mounts
 def check_dir(d):
     if isinstance(d, str):
         d = Path(d)
         return d.is_dir() and not d.name.startswith('.') and not d.is_link() and not d.is_mount()
     else: #already a dir object
         return d.is_dir() and not d.name.startswith('.')
-
-## FIXME: Maybe don't need now - os.walk(...) seems more elegant
-def get_files(dir_name = None):
-    if not dir_name: dir_name = os.getcwd()
-
-    ### Note, this ignores the top_level_directory (i.e. current working directory)
-    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
-    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
-
-    for d in sub_dirs:
-        try:
-#            click.echo("\t > %s" % (d.path) )
-
-            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
-            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
-            if len(child_dirs): sub_dirs.extend(child_dirs)
-
-        except:
-            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
-#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
-            continue
-
-    ## FIXME: eventually consider yield vs. building a full list
-    return child_files, sub_dirs
 
 def close_db_command(e = None):
     """Close the database"""
