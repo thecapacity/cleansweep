@@ -198,6 +198,7 @@ def bless_command(dir_name = None, **kw):
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
+## FIXME: This needs to actually do something w/ the database and comparisons
 @click.command('ls')
 @with_appcontext
 def ls_fs_command():
