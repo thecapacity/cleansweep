@@ -62,8 +62,7 @@ class Node():
     def __repr__(self):
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
-    def __delete__(self, instance):
-        pass ## eventually delete from DB or Filesystem depending on...
+    def db_delete(self):
 
 class FileNode(Node):
     def __init__(self, abs_path):
