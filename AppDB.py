@@ -161,10 +161,12 @@ class DirNode(Node):
         db, ds = get_db()
         table = ds[self.table_name]
 
+        ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
+        #if self.parent: self.parent.db_add()
+
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        ## FIXME: Should also make sure DirNode is saved for itself and its parent
-        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
         entry.pop('islink')
         entry.pop('ismount')
