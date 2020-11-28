@@ -48,17 +48,6 @@ def get_files(dir_name = None):
             yield f
     """
 
-def hash_func(file_name):
-    BLOCKSIZE = 65536
-    hasher = hashlib.sha1()
-
-    with open(file_name, 'rb') as afile:
-        buf = afile.read(BLOCKSIZE)
-        while len(buf) > 0:
-            hasher.update(buf)
-            buf = afile.read(BLOCKSIZE)
-        return hasher.hexdigest()
-
 def close_db_command(e = None):
     """Close the database"""
     AppDB.close_db(e)
