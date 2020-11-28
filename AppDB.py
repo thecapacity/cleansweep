@@ -70,6 +70,7 @@ class Node():
         db, ds = get_db()
 
         ## FIXME: Not sure if base class should know about sub-class particulars
+        ##      Use DataSet vs. SQL here
         try:
             statement = ''
             for row in ds.query(statement, abs_path=self.abs_path):
