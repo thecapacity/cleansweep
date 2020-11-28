@@ -172,6 +172,7 @@ def bless_command(dir_name = None, **kw):
 #            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
             continue
 
+    click.echo('\nBlessing Files')
     for f in child_files:
         click.echo('\t*> %s' % click.format_filename(f.path) )
         ## FIXME: change to use File and Dir Objects
