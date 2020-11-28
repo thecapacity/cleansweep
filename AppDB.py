@@ -63,6 +63,18 @@ class Node():
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
     def db_delete(self):
+        """ d = AppDB.DirNode(row['path'])
+            d.db_delete()
+        """
+        db, ds = get_db()
+
+        try:
+            statement = 'DELETE FROM dirs WHERE abs_path = :abs_path'
+            for row in ds.query(statement, abs_path=self.abs_path):
+                print(row)
+        except:
+            click.echo( "Trying to DELETE: %s" % (self.abs_path) )
+            click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
 
 class FileNode(Node):
     def __init__(self, abs_path):
