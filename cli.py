@@ -5,7 +5,8 @@ import sqlite3
 import time
 import shutil
 import hashlib
-
+from pathlib import Path
+ 
 import dataset
 import colored
 import click
@@ -15,11 +16,21 @@ from flask.cli import with_appcontext
 from . import AppDB
 
 def check_file(f):
-    return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+    if isinstance(f, str):
+        f = Path(f)
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+    else: #already a file object
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
+## FIXME: CURRENTLY NOT USED - maybe don't want to save dirs or chase links / mounts
 def check_dir(d):
-    return d.is_dir() and not d.name.startswith('.')
+    if isinstance(d, str):
+        d = Path(d)
+        return d.is_dir() and not d.name.startswith('.') and not d.is_link() and not d.is_mount()
+    else: #already a dir object
+        return d.is_dir() and not d.name.startswith('.')
 
+## FIXME: Maybe don't need now - os.walk(...) seems more elegant
 def get_files(dir_name = None):
     if not dir_name: dir_name = os.getcwd()
 
@@ -40,13 +51,8 @@ def get_files(dir_name = None):
 #            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
             continue
 
-    return child_files, sub_dirs
-
     ## FIXME: eventually consider yield vs. building a full list
-    """for f in os.listdir(path):
-        if check_file( os.path.join(path, f) ):
-            yield f
-    """
+    return child_files, sub_dirs
 
 def close_db_command(e = None):
     """Close the database"""
@@ -76,7 +82,7 @@ def db_ls_command(files = True, dirs = False, hashes = False):
     db, ds = AppDB.get_db()
 
     if files:
-        click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
+        #click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['files'].all():
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.FileNode(d['abs_path'])
@@ -84,7 +90,7 @@ def db_ls_command(files = True, dirs = False, hashes = False):
         click.echo()
 
     if dirs:
-        click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
+        #click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['dirs'].all():
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.DirNode(d['abs_path'])
@@ -93,8 +99,8 @@ def db_ls_command(files = True, dirs = False, hashes = False):
 
     if hashes:
         return ## FIXME: Future expansion
-        click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
-        for d in ds['hashes'].all():
+        #click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
+        for d in ds['hashes'].all(): ##FIXME: maybe not a seprate table just return file #
             click.echo('%s' % click.format_filename(json.dumps(d)) )
         click.echo()
 
@@ -104,9 +110,12 @@ def db_ls_files_command():
     """List files in the database."""
     db, ds = AppDB.get_db()
 
-    click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
-    for d in ds['files'].all():
-        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    for n in ds['files'].all():
+        if n['blessed']:
+            click.echo('%s * %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+        else:
+            click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dirs')
@@ -115,9 +124,9 @@ def db_ls_dirs_command():
     """List dirs in the database."""
     db, ds = AppDB.get_db()
 
-    click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
-    for d in ds['dirs'].all():
-        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    for n in ds['dirs'].all():
+        click.echo('%s' % click.format_filename(n['abs_path']) )
+#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dir-top')
@@ -156,45 +165,19 @@ def bless_command(dir_name = None, **kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
     if not dir_name: dir_name = os.getcwd()
 
-    click.echo('Blessing / %s' % click.format_filename(dir_name))
+    ## It is possible to get files with the same hash this way
+    ##    that should be ok - but worth noting that DB HASHES may not be unique
+    for r, subs, files in os.walk(dir_name):
+        click.echo('Blessing / %s' % click.format_filename(r))
 
-    db, ds = AppDB.get_db()
-    files = ds['files']
-    dirs = ds['dirs']
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            click.echo('\t   *> %s' % click.format_filename(f) )
 
-    ### Note, this ignores the top_level_directory and does NOT add it to the database
-    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
-    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.blessed = True
+            fNode.db_add()
 
-    for d in sub_dirs:
-        try:
-            click.echo("\t > %s" % (d.path) )
-
-            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
-            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
-            if len(child_dirs): sub_dirs.extend(child_dirs)
-
-        except:
-            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
-#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
-            continue
-
-    click.echo('\nBlessing Files')
-    for f in child_files:
-        click.echo('\t*> %s' % click.format_filename(f.path) )
-        fNode = AppDB.FileNode(f.path)
-        fNode.blessed = True
-        fNode.db_add()
-
-        ## FIXME: It is possible to get files with the same hash this way
-        ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
-
-    ## FIXME: This will add directories - with no blessed files, may not want
-    for d in sub_dirs:
-        #click.echo('\t \ %s' % click.format_filename(d.path) )
-        dNode = AppDB.DirNode(d.path, [s.path for s in sub_dirs] )
-        dNode.db_add()
-    #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 

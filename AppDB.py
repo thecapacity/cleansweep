@@ -68,9 +68,6 @@ class Node():
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
     def db_delete(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_delete()
-        """
         db, ds = get_db()
 
         try:
@@ -81,6 +78,10 @@ class Node():
             click.echo( "Trying to DELETE: %s" % (self.abs_path) )
             click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
 
+    ### FIXME: Probably a more elegant way to have the base class filter and add
+    def db_delete(self):
+        pass
+
 class FileNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
@@ -88,16 +89,12 @@ class FileNode(Node):
         self.table_name = 'files'
         self.sha1 = None
         self.size = os.path.getsize(abs_path)
-        self.atime = os.path.getatime(abs_path)
-        self.mtime = os.path.getmtime(abs_path)
-        self.islink = os.path.islink(abs_path)
 
         self.color = colored.bg('blue')
 
         self.parent = DirNode(self.path)
         self.blessed = False
 
-    ### FIXME: Probably a more elegant way to have the base class filter and add
     def db_add(self):
         """ d = AppDB.FileNode(row['path'])
             d.db_add()
@@ -107,16 +104,12 @@ class FileNode(Node):
         table = ds[self.table_name]
 
         if not self.sha1: self.get_hash()
+        if self.parent: self.parent.db_add()
 
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        ## FIXME: Should also make sure DirNode is saved for its parent
-        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
-        entry.pop('mtime')
-        entry.pop('atime')
-        entry.pop('size')
-        entry.pop('islink')
         entry.pop('table_name')
 
         try:
@@ -145,21 +138,17 @@ class FileNode(Node):
         return h
 
 class DirNode(Node):
-    def __init__(self, abs_path, sub_dirs = None):
+    def __init__(self, abs_path):
         Node.__init__(self, abs_path)
-        self.islink = os.path.islink(abs_path)
-        self.ismount = os.path.ismount(abs_path)
 
         self.table_name = 'dirs'
         self.parent = None
-        self.sub_dirs = sub_dirs
 
         p, d = os.path.split(abs_path)
         if d: self.parent = DirNode(p) # If d is None then we're at the top
 
         self.color = colored.bg('dark_olive_green_3a')
 
-    ### FIXME: Probably a more elegant way to have the base class filter and add
     def db_add(self):
         """ d = AppDB.DirNode(row['path'])
             d.db_add()
@@ -168,16 +157,14 @@ class DirNode(Node):
         db, ds = get_db()
         table = ds[self.table_name]
 
+        ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
+        #if self.parent: self.parent.db_add()
+
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        ## FIXME: Should also make sure DirNode is saved for itself and its parent
-        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
-        entry.pop('islink')
-        entry.pop('ismount')
         entry.pop('table_name')
-        entry['sub_dirs'] = json.dumps(self.sub_dirs)
-        entry['n_sub_dirs'] = len(self.sub_dirs)
 
         try:
             table = ds[self.table_name]
