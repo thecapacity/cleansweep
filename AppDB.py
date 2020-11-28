@@ -139,7 +139,6 @@ class FileNode(Node):
         return h
 
 class DirNode(Node):
-    def __init__(self, abs_path, sub_dirs = None):
         Node.__init__(self, abs_path)
         self.islink = os.path.islink(abs_path)
         self.ismount = os.path.ismount(abs_path)
@@ -170,8 +169,6 @@ class DirNode(Node):
         entry.pop('islink')
         entry.pop('ismount')
         entry.pop('table_name')
-        entry['sub_dirs'] = json.dumps(self.sub_dirs)
-        entry['n_sub_dirs'] = len(self.sub_dirs)
 
         try:
             table = ds[self.table_name]
