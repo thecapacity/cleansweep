@@ -57,6 +57,7 @@ class Node():
     def __init__(self, abs_path):
         self.abs_path = abs_path
         path, name = os.path.split(abs_path)
+        self.table_name = None
         self.path = path
         self.name = name or "/" ### Check: If name is none, then path is "/" and we're root
         self.color = ""
@@ -98,6 +99,7 @@ class FileNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
 
+        self.table_name = 'files'
         self.sha1 = None
         self.size = os.path.getsize(abs_path)
         self.atime = os.path.getatime(abs_path)
@@ -133,6 +135,7 @@ class DirNode(Node):
         self.islink = os.path.islink(abs_path)
         self.ismount = os.path.ismount(abs_path)
 
+        self.table_name = 'dirs'
         self.parent = None
 
         p, d = os.path.split(abs_path)
