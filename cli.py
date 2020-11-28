@@ -25,6 +25,7 @@ def check_file(f):
 def check_dir(d):
     return d.is_dir() and not d.name.startswith('.')
 
+## FIXME: Maybe don't need now - os.walk(...) seems more elegant
 def get_files(dir_name = None):
     if not dir_name: dir_name = os.getcwd()
 
