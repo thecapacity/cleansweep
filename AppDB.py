@@ -65,7 +65,7 @@ class Node():
     def __delete__(self, instance):
         pass ## eventually delete from DB or Filesystem depending on...
 
-class File_Node(Node):
+class FileNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
 
