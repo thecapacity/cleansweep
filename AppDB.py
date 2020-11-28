@@ -207,3 +207,5 @@ class FileNode(Node):
 
         else: ### Should Never get here
             click.echo("test_unique() UNKNOWN CONDITION")
+
+        ## FIXME: Future expansion, look for file collisions among non-blessed files
