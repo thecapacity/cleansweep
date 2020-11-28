@@ -114,7 +114,7 @@ class FileNode(Node):
         if self.sha1:
             return self.sha1
         else: ##maybe rather than recalculate query DB to see if we're already stored
-            self.sha1 = calculate_hash()
+            self.sha1 = self.calculate_hash()
         return self.sha1
 
     def calculate_hash(self):
