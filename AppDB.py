@@ -104,9 +104,9 @@ class FileNode(Node):
         db, ds = get_db()
         table = ds[self.table_name]
 
-        ### FIXME: Maybe we'll want these attributes another day
         if not self.sha1: self.get_hash()
 
+        ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
         entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
         entry.pop('color')
