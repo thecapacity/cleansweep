@@ -77,7 +77,7 @@ class FileNode(Node):
 
         self.color = colored.bg('blue')
 
-        self.parent = Dir_Node(self.path)
+        self.parent = DirNode(self.path)
 
     def get_hash(self):
         if self.sha1:
