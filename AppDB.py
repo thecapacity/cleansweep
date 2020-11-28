@@ -105,11 +105,11 @@ class FileNode(Node):
         table = ds[self.table_name]
 
         if not self.sha1: self.get_hash()
+        if self.parent: self.parent.db_add()
 
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        ## FIXME: Should also make sure DirNode is saved for its parent
-        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
         entry.pop('table_name')
 
