@@ -155,3 +155,28 @@ class DirNode(Node):
         if d: self.parent = DirNode(p) # If d is None then we're at the top
 
         self.color = colored.bg('dark_olive_green_3a')
+
+    ### FIXME: Probably a more elegant way to have the base class filter and add
+    def db_add(self):
+        """ d = AppDB.DirNode(row['path'])
+            d.db_add()
+            ### Will CREATE or UPDATE based on abs_path as unique key
+        """
+        db, ds = get_db()
+        table = ds[self.table_name]
+
+        ### FIXME: Maybe we'll want these attributes another day
+        entry = self.__dict__.copy()
+        entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
+        entry.pop('color')
+        entry.pop('islink')
+        entry.pop('ismount')
+        entry.pop('table_name')
+        entry['sub_dirs'] = json.dumps(self.sub_dirs)
+        entry['n_sub_dirs'] = len(self.sub_dirs)
+
+        try:
+            table = ds[self.table_name]
+            table.upsert(entry, ['abs_path'])
+        except:
+            click.echo( "Trying to ADD DIR: %s" % (self.abs_path) )
