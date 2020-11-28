@@ -141,6 +141,10 @@ class FileNode(Node):
         h = hasher.hexdigest()
         return h
 
+    ## FIXME: Consider if this should happen automatically e.g. on `__repr__(..)`
+    def test_unique(self):
+        return self.get_hash()
+
 class DirNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
