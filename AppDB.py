@@ -178,6 +178,32 @@ class FileNode(Node):
 
     ## FIXME: Consider if this should happen automatically e.g. on `__repr__(..)`
     def test_unique(self):
-        return self.get_hash()
+        my_sha1 = self.get_hash()
+        my_name = self.name
 
+        ## Cases to consider
+        ##      * Same Hash and Same Name as blessed file -> Mark as red for deletion
+        ##      * Same Hash and Diff Name as blessed file -> Mark as orange for review
+        ##      * Diff Hash and Same Name as blessed file -> Mark as purple for review
+        ##      * Diff Hash and Diff Name as blessed file -> Mark as green for inclusion
 
+        db, ds = get_db()
+        table = ds[self.table_name]
+
+        hash_match = False
+        name_match = False
+
+        if hash_match and name_match:
+            self.color = colored.bg('red')
+
+        elif hash_match and not name_match:
+            self.color = colored.bg('dark_orange_3a')
+
+        elif not hash_match and name_match:
+            self.color = colored.bg('purple_1b')
+
+        elif not hash_match and not name_match:
+            self.color = colored.bg('green')
+
+        else: ### Should Never get here
+            click.echo("test_unique() UNKNOWN CONDITION")
