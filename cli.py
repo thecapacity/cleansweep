@@ -5,7 +5,8 @@ import sqlite3
 import time
 import shutil
 import hashlib
-
+from pathlib import Path
+ 
 import dataset
 import colored
 import click
@@ -15,7 +16,11 @@ from flask.cli import with_appcontext
 from . import AppDB
 
 def check_file(f):
-    return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+    if isinstance(f, str):
+        f = Path(f)
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+    else: #already a file object
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
 
 def check_dir(d):
     return d.is_dir() and not d.name.startswith('.')
