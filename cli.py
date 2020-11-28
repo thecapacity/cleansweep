@@ -219,7 +219,7 @@ def ls_fs_command():
     for f in file_list:
 #        click.echo('\t*> %s' % click.format_filename(f.path) ) 
 
-        file_node = AppDB.File_Node(f.path)
+        file_node = AppDB.FileNode(f.path)
         click.echo('%s' % (file_node) )
         click.echo('\t abs  > %s' % click.format_filename(file_node.abs_path) ) 
         click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
