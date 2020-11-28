@@ -110,9 +110,12 @@ def db_ls_files_command():
     """List files in the database."""
     db, ds = AppDB.get_db()
 
-    click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
-    for d in ds['files'].all():
-        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    for n in ds['files'].all():
+        if n['blessed']:
+            click.echo('%s * %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+        else:
+            click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dirs')
