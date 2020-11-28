@@ -95,7 +95,6 @@ class FileNode(Node):
         self.parent = DirNode(self.path)
         self.blessed = False
 
-    ### FIXME: Probably a more elegant way to have the base class filter and add
     def db_add(self):
         """ d = AppDB.FileNode(row['path'])
             d.db_add()
@@ -139,6 +138,7 @@ class FileNode(Node):
         return h
 
 class DirNode(Node):
+    def __init__(self, abs_path):
         Node.__init__(self, abs_path)
 
         self.table_name = 'dirs'
