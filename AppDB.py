@@ -111,7 +111,6 @@ class FileNode(Node):
         ## FIXME: Should also make sure DirNode is saved for its parent
         entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
         entry.pop('color')
-        entry.pop('size')
         entry.pop('table_name')
 
         try:
