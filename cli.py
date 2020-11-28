@@ -160,19 +160,18 @@ def bless_command(dir_name = None, **kw):
 
 ## FIXME: This needs to actually do something w/ the database and comparisons
 @click.command('ls')
+@click.option('--dir_name', default=False)
 @with_appcontext
-def ls_fs_command():
+def ls_fs_command(dir_name = None):
     """List files on the filesystem based on database."""
-    file_list, dirs = get_files()
+    if not dir_name: dir_name = os.getcwd()
 
-    for f in file_list:
-#        click.echo('\t*> %s' % click.format_filename(f.path) ) 
+    for r, subs, files in os.walk(dir_name):
+        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
+        if not check_dir(r): continue
 
-        file_node = AppDB.FileNode(f.path)
-        click.echo('%s' % (file_node) )
-        click.echo('\t abs  > %s' % click.format_filename(file_node.abs_path) ) 
-        click.echo('\t name > %s' % click.format_filename(file_node.name) ) 
-        click.echo('\t path > %s' % click.format_filename(file_node.path) ) 
-        click.echo('\t hash > %s' % (file_node.sha1) ) 
-        click.echo('\t dir  > %s' % (file_node.parent) ) 
-        click.echo(' ')
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            click.echo('%s' % (fNode) )
