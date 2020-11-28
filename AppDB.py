@@ -68,9 +68,6 @@ class Node():
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
     def db_delete(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_delete()
-        """
         db, ds = get_db()
 
         try:
