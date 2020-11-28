@@ -161,45 +161,19 @@ def bless_command(dir_name = None, **kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
     if not dir_name: dir_name = os.getcwd()
 
-    click.echo('Blessing / %s' % click.format_filename(dir_name))
+    ## It is possible to get files with the same hash this way
+    ##    that should be ok - but worth noting that DB HASHES may not be unique
+    for r, subs, files in os.walk(dir_name):
+        click.echo('Blessing / %s' % click.format_filename(r))
 
-    db, ds = AppDB.get_db()
-    files = ds['files']
-    dirs = ds['dirs']
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            click.echo('\t   *> %s' % click.format_filename(f) )
 
-    ### Note, this ignores the top_level_directory and does NOT add it to the database
-    sub_dirs = [ d for d in os.scandir(dir_name) if check_dir(d) ]
-    child_files = [ f for f in os.scandir(dir_name) if check_file(f) ]
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.blessed = True
+            fNode.db_add()
 
-    for d in sub_dirs:
-        try:
-            click.echo("\t > %s" % (d.path) )
-
-            child_files.extend( [f for f in os.scandir(d.path) if check_file(f)] )
-            child_dirs = [ d for d in os.scandir(d) if check_dir(d) ]
-            if len(child_dirs): sub_dirs.extend(child_dirs)
-
-        except:
-            if d: click.echo( "EXCEPTION FOR: %s" % click.format_filename(d.path) )
-#            print( "Unexpected error: %s" % (sys.exc_info()[0]) )
-            continue
-
-    click.echo('\nBlessing Files')
-    for f in child_files:
-        click.echo('\t*> %s' % click.format_filename(f.path) )
-        fNode = AppDB.FileNode(f.path)
-        fNode.blessed = True
-        fNode.db_add()
-
-        ## FIXME: It is possible to get files with the same hash this way
-        ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
-
-    ## FIXME: This will add directories - with no blessed files, may not want
-    for d in sub_dirs:
-        #click.echo('\t \ %s' % click.format_filename(d.path) )
-        dNode = AppDB.DirNode(d.path, [s.path for s in sub_dirs] )
-        dNode.db_add()
-    #
     #files.create_index(['path', 'name', 'parent', 'f_hash'])
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
