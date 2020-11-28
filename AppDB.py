@@ -78,6 +78,10 @@ class Node():
             click.echo( "Trying to DELETE: %s" % (self.abs_path) )
             click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
 
+    ### FIXME: Probably a more elegant way to have the base class filter and add
+    def db_delete(self):
+        pass
+
 class FileNode(Node):
     def __init__(self, abs_path):
         Node.__init__(self, abs_path)
