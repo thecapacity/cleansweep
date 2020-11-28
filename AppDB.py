@@ -54,6 +54,8 @@ def drop_db():
         pass
 
 class Node():
+    ## FIXME: See about taking in json object from DB Query or loading after
+    ##  This would permit loading info from database (e.g. hash) vs recalculating
     def __init__(self, abs_path):
         self.abs_path = abs_path
         path, name = os.path.split(abs_path)
@@ -108,6 +110,7 @@ class FileNode(Node):
 
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
+        ## FIXME: Should also make sure DirNode is saved for its parent
         entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
         entry.pop('color')
         entry.pop('mtime')
@@ -167,6 +170,7 @@ class DirNode(Node):
 
         ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
+        ## FIXME: Should also make sure DirNode is saved for itself and its parent
         entry.pop('parent') ### This MUST be deleted as it's an obj type that can't be stored
         entry.pop('color')
         entry.pop('islink')
