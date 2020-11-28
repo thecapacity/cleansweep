@@ -175,14 +175,10 @@ def bless_command(dir_name = None, **kw):
     click.echo('\nBlessing Files')
     for f in child_files:
         click.echo('\t*> %s' % click.format_filename(f.path) )
-        ## FIXME: change to use File and Dir Objects
-        files.upsert( { 'abs_path': f.path,
-                        'name': f.name,
-                        'f_hash': hash_func(f.path),
-                        'blessed': True,
-                        'parent': os.path.dirname(f.path),
-                        #'updated_at': int(time.time()),
-                        'path': f.path, }, ['path'] )
+        fNode = AppDB.FileNode(f.path)
+        fNode.blessed = True
+        fNode.db_add()
+
         ## FIXME: It is possible to get files with the same hash this way
         ## FIXME:   that's likely ok but bears considering - maybe worth a HASH DB Obj/Table
 
