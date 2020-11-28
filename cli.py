@@ -186,7 +186,8 @@ def bless_command(dir_name = None, **kw):
     for f in child_files:
         click.echo('\t*> %s' % click.format_filename(f.path) )
         ## FIXME: change to use File and Dir Objects
-        files.upsert( { 'name': f.name,
+        files.upsert( { 'abs_path': f.path,
+                        'name': f.name,
                         'f_hash': hash_func(f.path),
                         'blessed': True,
                         'parent': os.path.dirname(f.path),
