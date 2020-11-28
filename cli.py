@@ -78,18 +78,25 @@ def db_ls_command(files = True, dirs = False, hashes = False):
     if files:
         click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['files'].all():
-            click.echo('%s' % click.format_filename(json.dumps(d)) )
+            #click.echo('%s' % click.format_filename(json.dumps(d)) )
+            Node = AppDB.FileNode(d['abs_path'])
+            click.echo('%s' % (Node) )
+        click.echo()
 
     if dirs:
         click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['dirs'].all():
-            click.echo('%s' % click.format_filename(json.dumps(d)) )
+            #click.echo('%s' % click.format_filename(json.dumps(d)) )
+            Node = AppDB.DirNode(d['abs_path'])
+            click.echo('%s' % (Node) )
+        click.echo()
 
     if hashes:
         return ## FIXME: Future expansion
         click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['hashes'].all():
             click.echo('%s' % click.format_filename(json.dumps(d)) )
+        click.echo()
 
 @click.command('db-ls-files')
 @with_appcontext
