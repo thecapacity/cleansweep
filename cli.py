@@ -124,9 +124,9 @@ def db_ls_dirs_command():
     """List dirs in the database."""
     db, ds = AppDB.get_db()
 
-    click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
-    for d in ds['dirs'].all():
-        click.echo('%s' % click.format_filename(json.dumps(d)) )
+    for n in ds['dirs'].all():
+        click.echo('%s' % click.format_filename(n['abs_path']) )
+#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dir-top')
