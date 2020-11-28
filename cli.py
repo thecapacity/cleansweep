@@ -169,6 +169,8 @@ def bless_command(dir_name = None, **kw):
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
         click.echo('Blessing / %s' % click.format_filename(r))
+        ## FIXME: Here's probably where to use check_dir(...)
+        ##          basically skip r or subs that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
