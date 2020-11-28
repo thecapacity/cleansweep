@@ -53,7 +53,7 @@ def drop_db():
 
 class Node():
     def __init__(self, abs_path):
-        self.id = abs_path
+        self.abs_path = abs_path
         path, name = os.path.split(abs_path)
         self.path = path
         self.name = name or "/" ### Check: If name is none, then path is "/" and we're root
@@ -101,7 +101,7 @@ class FileNode(Node):
         BLOCKSIZE = 65536
         hasher = hashlib.sha1()
 
-        with open(self.id, 'rb') as afile:
+        with open(self.abs_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
