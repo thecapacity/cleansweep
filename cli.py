@@ -25,7 +25,7 @@ def check_file(f):
 def check_dir(d):
     if isinstance(d, str):
         d = Path(d)
-        return d.is_dir() and not d.name.startswith('.') and not d.is_link() and not d.is_mount()
+        return d.is_dir() and not d.name.startswith('.') and not d.is_symlink() and not d.is_mount()
     else: #already a dir object
         return d.is_dir() and not d.name.startswith('.')
 
