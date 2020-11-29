@@ -119,7 +119,7 @@ class DirNode(Node):
             table = ds[self.table_name]
             table.upsert(entry, ['abs_path'])
         except:
-            click.echo( "Trying to ADD DIR: %s" % (self.abs_path) )
+            click.echo( "Error trying to ADD DIR: %s" % (self.abs_path) )
 
 class FileNode(Node):
     def __init__(self, abs_path):
