@@ -61,6 +61,7 @@ def db_ls_command(files = True, dirs = False, hashes = False):
         for d in ds['files'].all():
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.FileNode(d['abs_path'])
+            #click.echo('%s\n' % (d) )
             click.echo('%s' % (Node) )
 
     if dirs:
