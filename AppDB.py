@@ -54,8 +54,6 @@ def drop_db():
         pass
 
 class Node():
-    ## FIXME: See about taking in json object from DB Query or loading after
-    ##  This would permit loading info from database (e.g. hash) vs recalculating
     def __init__(self, abs_path):
         self.abs_path = abs_path
         path, name = os.path.split(abs_path)
