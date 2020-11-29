@@ -121,16 +121,28 @@ class DirNode(Node):
             click.echo( "Error trying to ADD DIR: %s" % (self.abs_path) )
 
 class FileNode(Node):
-    def __init__(self, abs_path):
-        Node.__init__(self, abs_path)
+    def __init__(self, info):
+        if isinstance(info, str): # if we get a string we're loading via filesystem
+            abs_path = info
+            Node.__init__(self, abs_path)
+
+            self.blessed = False
+            self.size = os.path.getsize(abs_path)
+            self.sha1 = None ## Don't auto hash for sha1, rely on explicit get_hash() call
+
+        else: #Otherwise assume we're loading an OrderedDict from the DB
+            abs_path = info['abs_path']
+            Node.__init__(self, abs_path)
+
+            self.blessed = False
+            self.sha1 = None
+
+            self.size = info['size']
+            self.sha1 = info['sha1']
+            if info['blessed']: self.bless()
 
         self.table_name = 'files'
-        self.sha1 = None
-        self.size = os.path.getsize(abs_path)
-
-        self.blessed = False
         self.color = colored.bg('blue')
-
         self.parent = DirNode(self.path)
 
     def bless(self):
