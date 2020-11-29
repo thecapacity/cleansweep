@@ -109,11 +109,10 @@ class DirNode(Node):
         ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
         #if self.parent: self.parent.db_add()
 
-        ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
         entry.pop('table_name')
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
 
         try:
             table = ds[self.table_name]
@@ -149,11 +148,10 @@ class FileNode(Node):
         if not self.sha1: self.get_hash()
         if self.parent: self.parent.db_add()
 
-        ### FIXME: Maybe we'll want these attributes another day
         entry = self.__dict__.copy()
-        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
         entry.pop('color')
         entry.pop('table_name')
+        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
 
         try:
             table = ds[self.table_name]
