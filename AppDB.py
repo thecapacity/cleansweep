@@ -81,8 +81,14 @@ class Node():
         pass
 
 class DirNode(Node):
-    def __init__(self, abs_path):
-        Node.__init__(self, abs_path)
+    def __init__(self, info):
+
+        if isinstance(info, str): # if we get a string we're loading via filesystem
+            abs_path = info
+            Node.__init__(self, abs_path)
+        else: #Otherwise assume we're loading an OrderedDict from the DB
+            abs_path = info['abs_path']
+            Node.__init__(self, abs_path)
 
         self.table_name = 'dirs'
         self.parent = None
