@@ -206,17 +206,29 @@ class FileNode(Node):
         ##      * Diff Hash and Diff Name as blessed file -> Mark as green for inclusion
         ##      * Same Hash and Same ABS_PATH as blessed file -> Mark as purple for protection
 
+        if hash_match and name_match and self.abs_path != name_match['abs_path']:
+            ##      red = 'ready to nuke'
+            self.color = colored.bg('red_3a')
 
         elif hash_match and not name_match:
+            ##      orange = 'OR-ange you sure it's not a match'
             self.color = colored.bg('dark_orange_3a')
 
-        elif not hash_match and name_match:
-            self.color = colored.bg('purple_1b')
+        elif not hash_match and name_match: # NAME MATCH BUT NOT HASH
+            ##      navy = 'name matches something'
+            self.color = colored.bg('navy_blue') ##FIXME: PICK DIFF COLOR
 
-        elif not hash_match and not name_match:
+        elif not hash_match and not name_match: # NO MATCH - unique file
+            ##      green = 'good to store'
             self.color = colored.bg('green')
+
+        elif hash_match and name_match and self.abs_path == name_match['abs_path']:
+            ### THIS FILE IS A GOLDEN MASTER FILE - DO NOT DELETE!!!
+            ##      purpose = 'protect'
+            self.color = colored.bg('purple_1b')
 
         else: ### Should Never get here
             click.echo("test_unique() UNKNOWN CONDITION")
+            click.echo("\t with: %s" % (self.abs_path) )
 
         ## FIXME: Future expansion, look for file collisions among non-blessed files
