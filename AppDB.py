@@ -195,10 +195,10 @@ class FileNode(Node):
         db, ds = get_db()
         table = ds[self.table_name]
 
-        hash_match = False
-        name_match = False
+        ## find_one will return an OrderedDict Object - i.e. the whole row / object
+        hash_match = table.find_one(sha1=my_sha1)
+        name_match = table.find_one(name=my_name)
 
-        if hash_match and name_match:
         ## Cases to consider
         ##      * Same Hash and Same ABS_PATH (thus name) -> Mark as red for deletion
         ##      * Same Hash and Diff Name as blessed file -> Mark as orange for review
