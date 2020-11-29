@@ -62,7 +62,6 @@ def db_ls_command(files = True, dirs = False, hashes = False):
             #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.FileNode(d['abs_path'])
             click.echo('%s' % (Node) )
-        click.echo()
 
     if dirs:
         #click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
