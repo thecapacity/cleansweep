@@ -162,10 +162,17 @@ class FileNode(Node):
             click.echo( "Error trying to ADD FILE: %s" % (self.abs_path) )
 
     def get_hash(self):
+        db, ds = get_db()
+
         if self.sha1:
             return self.sha1
-        else: ##maybe rather than recalculate query DB to see if we're already stored
-            self.sha1 = self.calculate_hash()
+        else: ##rather than just recalculate - query DB to see if we're already stored
+            db_entry = ds[self.table_name].find_one(abs_path=self.abs_path)
+
+            if db_entry:
+                self.sha1 = db_entry['sha1']
+            else:
+                self.sha1 = self.calculate_hash()
         return self.sha1
 
     def calculate_hash(self):
