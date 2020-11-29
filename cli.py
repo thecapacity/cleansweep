@@ -90,7 +90,7 @@ def db_ls_files_command():
             click.echo('%s * %s' % (click.format_filename(n['abs_path']), n['sha1']) )
         else:
             click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
-#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
+        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dirs')
