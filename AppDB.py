@@ -159,7 +159,7 @@ class FileNode(Node):
             table = ds[self.table_name]
             table.upsert(entry, ['abs_path'])
         except:
-            click.echo( "Trying to ADD FILE: %s" % (self.abs_path) )
+            click.echo( "Error trying to ADD FILE: %s" % (self.abs_path) )
 
     def get_hash(self):
         if self.sha1:
