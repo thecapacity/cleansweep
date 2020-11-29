@@ -77,7 +77,7 @@ class Node():
             click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
 
     ### FIXME: Probably a more elegant way to have the base class filter and add
-    def db_delete(self):
+    def db_add(self):
         pass
 
 class DirNode(Node):
