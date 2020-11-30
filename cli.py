@@ -105,7 +105,7 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
-@click.command('bless-dir')
+@click.command('bless')
 @click.option('--dir-name', default=False)
 @with_appcontext
 def bless_command(dir_name = None):
