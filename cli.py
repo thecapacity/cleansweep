@@ -106,6 +106,7 @@ def db_ls_dirs_command():
     return
 
 ## FIXME: This is completely wrong - because n_sub_dirs isn't in the DB
+##          also ['abs_path'] didn't quite work as I expected either
 """
 @click.command('db-ls-dir-top')
 @click.option('-n', '--num', default=2)
