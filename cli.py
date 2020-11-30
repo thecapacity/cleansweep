@@ -166,4 +166,22 @@ def fs_sweep_command(**kw):
     if not kw['dir_name']: kw['dir_name'] = os.getcwd()
     if not kw['dst_name']: kw['dst_name'] = current_app.config['DST_DIR_NAME']
 
-    pass
+    replace_dir, _ = os.path.split(kw['dir_name'])
+
+    for r, subs, files in os.walk(kw['dir_name']):
+        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
+        if not check_dir(r): continue
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+
+            abs_src = os.path.join(r, f)
+            fNode = AppDB.FileNode(abs_src)
+
+            if fNode.is_unique():
+                click.echo('%s' % (fNode) )
+                new_dst = os.path.join(r, f).replace(replace_dir, kw['dst_name'])
+                click.echo('\t%s' % (new_dst) )
+
+                ## FIXME: Need to figure out what to do w/ node 
+                ##          - e.g. delete old, make new, store new?
