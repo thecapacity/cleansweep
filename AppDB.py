@@ -197,6 +197,37 @@ class FileNode(Node):
         return h
 
     ## Maybe this should happen automatically e.g. on `__repr__(..)` - good enough for now
+    def is_unique(self):
+        ## Return Unique if it's green or purple
+        ##  note !unique is not the same as saying it's a duplicate
+        ##  e.g. orange or blue are unknown
+
+        self.test_unique()
+
+        if self.color == colored.bg('red_3a'):
+            return False
+
+        elif self.color == colored.bg('dark_orange_3a'):
+            return False ## Beware binary logic _may_ be unique or dup
+
+        elif self.color == colored.bg('navy_blue'):
+            return False ## Beware binary logic _may_ be unique or dup
+
+        elif self.color == colored.bg('green'):
+            return True
+
+        elif self.color == colored.bg('purple_1b'):
+            return True
+
+        else: ### Would get here if file hasn't been checked: colored.bg('blue')
+            click.echo("is_unique() UNKNOWN CONDITION")
+            click.echo("\t with: %s" % (self.abs_path) )
+
+            return False
+
+        ## FIXME: Future expansion, look for file collisions among non-blessed files
+        ##          but right now there's no way to add non-blessed files to DB
+
     def test_unique(self):
         my_sha1 = self.get_hash()
         my_name = self.name
