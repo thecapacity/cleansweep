@@ -185,3 +185,6 @@ def fs_sweep_command(**kw):
 
                 ## FIXME: Need to figure out what to do w/ node 
                 ##          - e.g. delete old, make new, store new?
+
+                ## green means it's not in DB and is new 
+                ##          - purple means it is and should be deleted
