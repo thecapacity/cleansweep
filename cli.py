@@ -132,9 +132,8 @@ def db_dir_top_command(num = None, name = None):
 
 @click.command('bless-dir')
 @click.option('--dir-name', default=False)
-@click.option('--dups-allowed/--no-dups-allowed', default=True) ##FIXME: Future option
 @with_appcontext
-def bless_command(dir_name = None, **kw):
+def bless_command(dir_name = None)
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
     if not dir_name: dir_name = os.getcwd()
 
