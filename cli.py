@@ -163,6 +163,7 @@ def fs_clean_command(dir_name = None):
 @with_appcontext
 def fs_sweep_command(**kw):
     """Sweap files on the filesystem """
-    if not dir_name: dir_name = os.getcwd()
+    if not kw['dir_name']: kw['dir_name'] = os.getcwd()
+    if not kw['dst_name']: kw['dst_name'] = current_app.config['DST_DIR_NAME']
 
     pass
