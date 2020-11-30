@@ -159,6 +159,7 @@ def fs_clean_command(dir_name = None):
 
 @click.command('sweep')
 @click.option('--dir-name', default=False)
+@click.option('--dst-name', default=False)
 @with_appcontext
 def fs_sweep_command(**kw):
     """Sweap files on the filesystem """
