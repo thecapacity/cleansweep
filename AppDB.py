@@ -76,7 +76,6 @@ class Node():
             click.echo( "Trying to DELETE: %s" % (self.abs_path) )
             click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
 
-    ### FIXME: Probably a more elegant way to have the base class filter and add
     def db_add(self):
         pass
 
@@ -106,7 +105,7 @@ class DirNode(Node):
         db, ds = get_db()
         table = ds[self.table_name]
 
-        ## FIXME: Not needed at present - creates full dir tree (back to '/' if we do)
+        ## Not needed at present - creates full dir tree (back to '/' if we do)
         #if self.parent: self.parent.db_add()
 
         entry = self.__dict__.copy()
@@ -197,7 +196,7 @@ class FileNode(Node):
         h = hasher.hexdigest()
         return h
 
-    ## FIXME: Consider if this should happen automatically e.g. on `__repr__(..)`
+    ## Maybe this should happen automatically e.g. on `__repr__(..)` - good enough for now
     def test_unique(self):
         my_sha1 = self.get_hash()
         my_name = self.name
@@ -226,7 +225,7 @@ class FileNode(Node):
 
         elif not hash_match and name_match: # NAME MATCH BUT NOT HASH
             ##      navy = 'name matches something'
-            self.color = colored.bg('navy_blue') ##FIXME: PICK DIFF COLOR
+            self.color = colored.bg('navy_blue')
 
         elif not hash_match and not name_match: # NO MATCH - unique file
             ##      green = 'good to store'
@@ -242,3 +241,4 @@ class FileNode(Node):
             click.echo("\t with: %s" % (self.abs_path) )
 
         ## FIXME: Future expansion, look for file collisions among non-blessed files
+        ##          but right now there's no way to add non-blessed files to DB
