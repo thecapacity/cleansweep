@@ -105,41 +105,6 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
-## FIXME: This is completely wrong - because n_sub_dirs isn't in the DB
-##          also ['abs_path'] didn't quite work as I expected either
-"""
-@click.command('db-ls-dir-top')
-@click.option('-n', '--num', default=2)
-@click.option('--name/--no-name', default=False)
-@with_appcontext
-def db_dir_top_command(num = None, name = None):
-    ### Return top `n` dirs based on n_sub_dirs.
-    if not num: num = 2
-
-    db, ds = AppDB.get_db()
-    table = ds.load_table('dirs')
-
-    if not name:
-        click.echo('Top %s dir(s) by number of sub-directories...' % (num) )
-        for d in table.find(order_by='-n_sub_dirs', _limit=num):
-            click.echo('\t > %s' % click.format_filename( json.dumps(d['path']) ) )
-    elif name:
-        click.echo('Top %s dir(s) with the same names...' % num)
-
-        statement = 'SELECT path, name, COUNT(*) c FROM dirs GROUP BY name \
-                                        ORDER BY c DESC LIMIT :max_num'
-
-        try:
-            for row in ds.query(statement, max_num=num):
-                click.echo('\t %i > %s @ %s' % (row['c'], 
-                                click.format_filename(row['name']),
-                                click.format_filename(row['path'])) )
-        except:
-            click.echo('UNKNOWN ERROR... probably no data in DB file')
-    else:
-        click.echo('Top %s dir(s) UNKNOWN ERROR...' % (num) )
-"""
-
 @click.command('bless-dir')
 @click.option('--dir-name', default=False)
 @with_appcontext
