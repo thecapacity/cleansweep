@@ -88,10 +88,10 @@ def db_ls_files_command():
 
     for n in ds['files'].all():
         if n['blessed']:
-            click.echo('%s * %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+            click.echo('%s *\n\t%s' % (click.format_filename(n['abs_path']), n['sha1']) )
         else:
             click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
-        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
+        click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dirs')
@@ -102,7 +102,7 @@ def db_ls_dirs_command():
 
     for n in ds['dirs'].all():
         click.echo('%s' % click.format_filename(n['abs_path']) )
-#        click.echo('\t%s' % click.format_filename(json.dumps(n)) )
+        click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
 @click.command('db-ls-dir-top')
