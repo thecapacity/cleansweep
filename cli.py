@@ -117,16 +117,19 @@ def db_dir_top_command(num = None, name = None):
         click.echo('Top %s dir(s) by number of sub-directories...' % (num) )
         for d in table.find(order_by='-n_sub_dirs', _limit=num):
             click.echo('\t > %s' % click.format_filename( json.dumps(d['path']) ) )
-    elif name: ## FIXME: Will error out if database has no data
+    elif name:
         click.echo('Top %s dir(s) with the same names...' % num)
 
         statement = 'SELECT path, name, COUNT(*) c FROM dirs GROUP BY name \
                                         ORDER BY c DESC LIMIT :max_num'
 
-        for row in ds.query(statement, max_num=num):
-            click.echo('\t %i > %s @ %s' % (row['c'], 
-                            click.format_filename(row['name']),
-                            click.format_filename(row['path'])) )
+        try:
+            for row in ds.query(statement, max_num=num):
+                click.echo('\t %i > %s @ %s' % (row['c'], 
+                                click.format_filename(row['name']),
+                                click.format_filename(row['path'])) )
+        except:
+            click.echo('UNKNOWN ERROR... probably no data in DB file')
     else:
         click.echo('Top %s dir(s) UNKNOWN ERROR...' % (num) )
 
