@@ -72,10 +72,13 @@ def db_ls_command(files = True, dirs = False, hashes = False):
             click.echo('%s' % (Node) )
 
     if hashes:
-        return ## FIXME: Future expansion
         #click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
-        for d in ds['hashes'].all(): ##FIXME: maybe not a seprate table just return file #
-            click.echo('%s' % click.format_filename(json.dumps(d)) )
+
+        for h in ds['files'].distinct('sha1'):
+            click.echo('%s' % (h['sha1']))
+            for f in ds['files'].all(sha1=h['sha1']):
+#            for f in ds['files'].find(sha1=h['sha1'], order_by='abs_path'):
+                click.echo('\t / %s' % (click.format_filename(f['abs_path'])) )
 
 @click.command('db-ls-files')
 @with_appcontext
