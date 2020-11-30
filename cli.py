@@ -167,7 +167,7 @@ def bless_command(dir_name = None):
 @click.command('ls')
 @click.option('--dir-name', default=False)
 @with_appcontext
-def ls_fs_command(dir_name = None):
+def fs_ls_command(dir_name = None):
     """List files on the filesystem based on database."""
     if not dir_name: dir_name = os.getcwd()
 
