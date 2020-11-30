@@ -58,6 +58,8 @@ def create_app(test_config=None):
 
         app.cli.add_command(cli.bless_command) # Recursively scan dir and add all non-zero files
         app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and add all non-zero files
+        app.cli.add_command(cli.fs_clean_command) # Recursively delete files
+        app.cli.add_command(cli.fs_sweap_command) # Recursively move unique files
 
     init_app(app)
 

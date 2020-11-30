@@ -147,3 +147,21 @@ def fs_ls_command(dir_name = None):
             fNode = AppDB.FileNode( os.path.join(r, f) )
             fNode.test_unique()
             click.echo('%s' % (fNode) )
+
+@click.command('clean')
+@click.option('--dir-name', default=False)
+@with_appcontext
+def fs_clean_command(dir_name = None):
+    """Clean files on the filesystem based on database."""
+    if not dir_name: dir_name = os.getcwd()
+
+    pass
+
+@click.command('sweap')
+@click.option('--dir-name', default=False)
+@with_appcontext
+def fs_sweap_command(dir_name = None):
+    """Sweap files on the filesystem """
+    if not dir_name: dir_name = os.getcwd()
+
+    pass
