@@ -157,10 +157,10 @@ def fs_clean_command(dir_name = None):
 
     pass
 
-@click.command('sweap')
+@click.command('sweep')
 @click.option('--dir-name', default=False)
 @with_appcontext
-def fs_sweap_command(dir_name = None):
+def fs_sweep_command(**kw):
     """Sweap files on the filesystem """
     if not dir_name: dir_name = os.getcwd()
 
