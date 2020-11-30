@@ -131,7 +131,7 @@ def db_dir_top_command(num = None, name = None):
         click.echo('Top %s dir(s) UNKNOWN ERROR...' % (num) )
 
 @click.command('bless-dir')
-@click.option('--dir_name', default=False)
+@click.option('--dir-name', default=False)
 @click.option('--dups-allowed/--no-dups-allowed', default=True) ##FIXME: Future option
 @with_appcontext
 def bless_command(dir_name = None, **kw):
@@ -157,7 +157,7 @@ def bless_command(dir_name = None, **kw):
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
 @click.command('ls')
-@click.option('--dir_name', default=False)
+@click.option('--dir-name', default=False)
 @with_appcontext
 def ls_fs_command(dir_name = None):
     """List files on the filesystem based on database."""
