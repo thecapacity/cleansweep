@@ -105,6 +105,8 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
+## FIXME: This is completely wrong - because n_sub_dirs isn't in the DB
+"""
 @click.command('db-ls-dir-top')
 @click.option('-n', '--num', default=2)
 @click.option('--name/--no-name', default=False)
@@ -135,6 +137,7 @@ def db_dir_top_command(num = None, name = None):
             click.echo('UNKNOWN ERROR... probably no data in DB file')
     else:
         click.echo('Top %s dir(s) UNKNOWN ERROR...' % (num) )
+"""
 
 @click.command('bless-dir')
 @click.option('--dir-name', default=False)
