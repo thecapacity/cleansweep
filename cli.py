@@ -146,7 +146,7 @@ def fs_ls_command():
             if not check_file( os.path.join(r, f) ): continue
 
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.test_unique()
+            fNode.is_unique()
             click.echo('%s' % (fNode) )
 
 @click.command('clean')
