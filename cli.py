@@ -132,9 +132,6 @@ def bless_command(**kw):
 
             click.echo('\t *> %s' % (fNode) )
 
-    #files.create_index(['path', 'name', 'parent', 'f_hash'])
-    #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
-
 @click.command('ls')
 @with_appcontext
 def fs_ls_command():
