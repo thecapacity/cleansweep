@@ -111,6 +111,11 @@ def db_ls_dirs_command():
 def bless_command(**kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
 
+    if 'status' in kw and not "BLESSED" in kw['status']:
+        status = "unknown" ## Only permit bless to clear (not CURSE)
+    else:
+        status = "BLESSED"
+
     ## It is possible to get files with the same hash this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
@@ -121,7 +126,7 @@ def bless_command(**kw):
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.bless()
+            fNode.bless(status)
             fNode.db_add()
 
             click.echo('\t *> %s' % (fNode) )
