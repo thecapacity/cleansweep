@@ -30,6 +30,9 @@ def init_db():
     table = ds['files']
     table = ds['dirs']
 
+    files.create_index(['path', 'name', 'parent', 'f_hash'])
+    dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
+
 def close_db(e=None):
     ds = g.pop('ds', None)
     db = g.pop('db', None)
