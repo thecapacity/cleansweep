@@ -58,8 +58,8 @@ def create_app(test_config=None):
         app.cli.add_command(cli.db_ls_command) #More flexible list <x> in database
         app.cli.add_command(cli.db_ls_files_command) #list files in database
         app.cli.add_command(cli.db_ls_dirs_command) #list dirs in database - currently none
-#        app.cli.add_command(cli.db_dir_top_command) #list top `n` dirs in database by subdir
 
+        app.cli.add_command(cli.curse_command) # Recursively scan and CURSE all non-zero files
         app.cli.add_command(cli.bless_command) # Recursively scan dir and add all non-zero files
         app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and add all non-zero files
         app.cli.add_command(cli.fs_clean_command) # Recursively delete files
