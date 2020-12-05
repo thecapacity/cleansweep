@@ -186,7 +186,16 @@ def fs_clean_command(**kw):
         ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
         if not check_dir(r): continue
 
-    pass
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+
+            abs_src = os.path.join(r, f)
+            fNode = AppDB.FileNode(abs_src)
+
+            if not fNode.is_unique():
+                click.echo('NUKE: %s' % (fNode) )
+            else:
+                click.echo('%s' % (fNode) )
 
 @click.command('sweep')
 @click.option('--dst-name', default=False)
