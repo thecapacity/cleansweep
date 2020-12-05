@@ -105,6 +105,27 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
+@click.command('curse')
+@with_appcontext
+def curse_command():
+    """CURSE the database wih known BAD files - IGNORES hidden .* files"""
+    dir_name = os.getcwd()
+
+    ## It is possible to get files with the same hash this way
+    ##    that should be ok - but worth noting that DB HASHES may not be unique
+    for r, subs, files in os.walk(dir_name):
+        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
+        if not check_dir(r): continue
+        click.echo('CURSING %s' % click.format_filename(r))
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.bless("CURSED")
+            fNode.db_add()
+
+            click.echo('\t *> %s' % (fNode) )
+
 @click.command('bless')
 @click.argument('status', required=False, default = "BLESSED")
 @with_appcontext
