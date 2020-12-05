@@ -184,6 +184,11 @@ class FileNode(Node):
         except:
             click.echo( "Error trying to ADD FILE: %s" % (self.abs_path) )
 
+    def db_delete(self):
+        Node.db_delete(self)
+        ## Need to delete the file (i.e. self) first so DirNode can see if it should be deleted
+        if self.parent: self.parent.db_delete() ## Child should suggest to parent to delete
+
     def get_hash(self):
         db, ds = get_db()
 
