@@ -71,13 +71,9 @@ class Node():
     def db_delete(self):
         db, ds = get_db()
 
-        try:
-            statement = 'DELETE FROM dirs WHERE abs_path = :abs_path'
-            for row in ds.query(statement, abs_path=self.abs_path):
-                print(row)
-        except:
-            click.echo( "Trying to DELETE: %s" % (self.abs_path) )
-            click.echo( "Unexpected error: %s" % (sys.exc_info()[0]) )
+        statement = 'DELETE FROM %s WHERE abs_path = "%s"' % (self.table_name, self.abs_path)
+        for row in ds.query(statement):
+            print("DELETING: %s" % (row) ) ## Doesn't happen because query returns nothing
 
     def db_add(self):
         pass
