@@ -106,11 +106,10 @@ def db_ls_dirs_command():
     return
 
 @click.command('bless')
-@click.option('--dir-name', default=False)
+@click.argument('status', required=False, default = "BLESSED")
 @with_appcontext
-def bless_command(dir_name = None):
+def bless_command(**kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
-    if not dir_name: dir_name = os.getcwd()
 
     ## It is possible to get files with the same hash this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
@@ -131,11 +130,10 @@ def bless_command(dir_name = None):
     #dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
 
 @click.command('ls')
-@click.option('--dir-name', default=False)
 @with_appcontext
-def fs_ls_command(dir_name = None):
+def fs_ls_command():
     """List files on the filesystem based on database."""
-    if not dir_name: dir_name = os.getcwd()
+    dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
         ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
@@ -149,26 +147,25 @@ def fs_ls_command(dir_name = None):
             click.echo('%s' % (fNode) )
 
 @click.command('clean')
-@click.option('--dir-name', default=False)
 @with_appcontext
-def fs_clean_command(dir_name = None):
-    """Clean files on the filesystem based on database."""
-    if not dir_name: dir_name = os.getcwd()
+def fs_clean_command(**kw):
+    """Clean - aka DELETE - files on the filesystem based on database."""
+    dir_name = os.getcwd()
+
 
     pass
 
 @click.command('sweep')
-@click.option('--dir-name', default=False)
 @click.option('--dst-name', default=False)
 @with_appcontext
 def fs_sweep_command(**kw):
     """Sweap files on the filesystem """
-    if not kw['dir_name']: kw['dir_name'] = os.getcwd()
+    dir_name = os.getcwd()
     if not kw['dst_name']: kw['dst_name'] = current_app.config['DST_DIR_NAME']
 
-    replace_dir, _ = os.path.split(kw['dir_name'])
+    replace_dir, _ = os.path.split(dir_name)
 
-    for r, subs, files in os.walk(kw['dir_name']):
+    for r, subs, files in os.walk(dir_name):
         ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
         if not check_dir(r): continue
 
