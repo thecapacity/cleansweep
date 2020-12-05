@@ -120,6 +120,14 @@ class DirNode(Node):
         except:
             click.echo( "Error trying to ADD DIR: %s" % (self.abs_path) )
 
+    def db_delete(self):
+        ## FIXME: This might leave dangling files if we delete Dir of multiple files
+        ##      DirNode Delete should be to delete the DirNode if no files point to it
+        if self.parent: self.parent.db_delete() ## FIXME: Right now self.parent = None
+        Node.db_delete(self)
+        ## FIXME: Test gets complicated because DirNode needs to know about FileNode 
+            ##  (i.e. files table) to run query
+
 class FileNode(Node):
     def __init__(self, info):
         if isinstance(info, str): # if we get a string we're loading via filesystem
