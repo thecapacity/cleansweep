@@ -149,6 +149,7 @@ def fs_ls_command():
             fNode.is_unique()
             click.echo('%s' % (fNode) )
 
+## FIXME: Placeholder - NEEDS TO BE COMPLETED
 @click.command('clean')
 @with_appcontext
 def fs_clean_command(**kw):
