@@ -197,6 +197,7 @@ def fs_clean_command(**kw):
             else:
                 click.echo('%s' % (fNode) )
 
+## FIXME: Placeholder - NEEDS TO BE COMPLETED
 @click.command('sweep')
 @click.option('--dst-name', default=False)
 @with_appcontext
