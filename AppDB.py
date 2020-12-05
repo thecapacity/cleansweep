@@ -201,6 +201,7 @@ class FileNode(Node):
                 self.sha1 = db_entry['sha1']
             else:
                 self.sha1 = self.calculate_hash()
+
         return self.sha1
 
     def calculate_hash(self):
