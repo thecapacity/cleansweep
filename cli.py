@@ -182,6 +182,9 @@ def fs_clean_command(**kw):
     """Clean - aka DELETE - files on the filesystem based on database."""
     dir_name = os.getcwd()
 
+    for r, subs, files in os.walk(dir_name):
+        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
+        if not check_dir(r): continue
 
     pass
 
