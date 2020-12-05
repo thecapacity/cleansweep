@@ -110,6 +110,7 @@ def db_ls_dirs_command():
 @with_appcontext
 def bless_command(**kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
+    dir_name = os.getcwd()
 
     if 'status' in kw and not "BLESSED" in kw['status']:
         status = "unknown" ## Only permit bless to clear (not CURSE)
