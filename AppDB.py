@@ -129,28 +129,32 @@ class FileNode(Node):
             abs_path = info
             Node.__init__(self, abs_path)
 
-            self.blessed = False
-            self.size = os.path.getsize(abs_path)
             self.sha1 = None ## Don't auto hash for sha1, rely on explicit get_hash() call
+            self.status = "unknown"
+            self.color = colored.bg('blue')
+            self.size = os.path.getsize(abs_path)
 
         else: #Otherwise assume we're loading an OrderedDict from the DB
             abs_path = info['abs_path']
             Node.__init__(self, abs_path)
 
-            self.blessed = False
-            self.sha1 = None
-
-            self.size = info['size']
             self.sha1 = info['sha1']
-            if info['blessed']: self.bless()
+            self.size = info['size']
+            self.bless( info['status'] )
 
         self.table_name = 'files'
-        self.color = colored.bg('blue')
-        self.parent = DirNode(self.path)
+        self.parent = DirNode(self.path) ## Convenience helper object vs. self.path string
 
-    def bless(self):
-        self.blessed = True
-        self.color = colored.bg('gold_3a')
+    def bless(self, state = "BLESSED"):
+        self.status = state
+        if "BLESSED" in state:
+            self.color = colored.bg('gold_3a')
+        elif "CURSED" in state:
+            self.color = colored.bg('red_3a') + colored.attr(5) ## attr(5) is blink
+        elif "unknown" in state:
+            self.color = colored.bg('blue')
+        else:
+            self.color = colored.bg('blue') + colored.attr(5)
 
     def db_add(self):
         """ d = AppDB.FileNode(row['path'])
@@ -223,6 +227,9 @@ class FileNode(Node):
         elif self.color == colored.bg('purple_1b'):
             return True
 
+        elif self.color == colored.bg('gold_3a'):
+            return True
+
         else: ### Would get here if file hasn't been checked: colored.bg('blue')
             click.echo("is_unique() UNKNOWN CONDITION")
             click.echo("\t with: %s" % (self.abs_path) )
@@ -250,11 +257,25 @@ class FileNode(Node):
         ##      * Diff Hash and Diff Name as blessed file -> Mark as green for inclusion
         ##      * Same Hash and Same ABS_PATH as blessed file -> Mark as purple for protection
 
-        if hash_match and name_match and self.abs_path != name_match['abs_path']:
+        if self.color == colored.bg('gold_3a'):
+            ##      gold = 'golden master' - we've blessed this - ignore others
+            pass    ## Added to prevent over writing - e.g. with 'purple'
+
+        elif hash_match and name_match and self.abs_path != name_match['abs_path']:
             ##      red = 'ready to nuke'
             self.color = colored.bg('red_3a')
 
-        elif hash_match and not name_match:
+            ## THIS COULD FAIL badly - i.e. mark a blessed file as nuke-able!!!
+            ##      so check to make sure returned file is not itself blessed
+            if "BLESSED" in name_match['status']: # and self.abs_path == name_match['abs_path']:
+                click.echo("%s" % (self.abs_path) )
+                click.echo("\t%s" % (json.dumps(name_match) ) )
+                self.color = colored.bg('gold_3a')
+                #self.color = colored.bg('purple_1b')
+            ### FIXME: the above is still not right - prevents nuking a blessed file
+            ##      but is also marking a non-blessed dup as safe
+
+        elif hash_match and not name_match: # HASH MATCH BUT NOT NAME
             ##      orange = 'OR-ange you sure it's not a match'
             self.color = colored.bg('dark_orange_3a')
 
