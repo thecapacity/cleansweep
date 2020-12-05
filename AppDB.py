@@ -216,9 +216,10 @@ class FileNode(Node):
         h = hasher.hexdigest()
         return h
 
-    ## Maybe this should happen automatically e.g. on `__repr__(..)` - good enough for now
+    ## Maybe this should happen on `__repr__(..)` - good enough for now
+    ## FIXME: Make this work with the test_unique()
     def is_unique(self):
-        ## Return Unique if it's green or purple
+        ## Return Unique if it's green or purple or gold
         ##  note !unique is not the same as saying it's a duplicate
         ##  e.g. orange or blue are unknown
 
@@ -248,10 +249,10 @@ class FileNode(Node):
 
             return False
 
-        ## FIXME: Future expansion, look for file collisions among non-blessed files
-        ##          but right now there's no way to add non-blessed files to DB
-
+    ## FIXME: This isn't quite right - e.g. confusing dups for uniques, etc. 
+    ##             depends on the circumstances - e.g. ordering of adding - of events
     def test_unique(self):
+        """ Shouldn't be called directly, call `is_unique()` to give change to re-test """
         my_sha1 = self.get_hash()
         my_name = self.name
 
@@ -301,12 +302,9 @@ class FileNode(Node):
 
         elif hash_match and name_match and self.abs_path == name_match['abs_path']:
             ### THIS FILE IS A GOLDEN MASTER FILE - DO NOT DELETE!!!
-            ##      purpose = 'protect'
+            ##      purple = 'protect'
             self.color = colored.bg('purple_1b')
 
         else: ### Should Never get here
             click.echo("test_unique() UNKNOWN CONDITION")
             click.echo("\t with: %s" % (self.abs_path) )
-
-        ## FIXME: Future expansion, look for file collisions among non-blessed files
-        ##          but right now there's no way to add non-blessed files to DB
