@@ -112,6 +112,7 @@ class DirNode(Node):
         entry.pop('color')
         entry.pop('table_name')
         entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
+            ## We also don't need to save it because self.path is the text representation
 
         try:
             table = ds[self.table_name]
