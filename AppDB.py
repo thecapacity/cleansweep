@@ -51,7 +51,7 @@ def drop_db():
         os.remove( DATABASE_PATH )
     except:
         pass
-    try:
+    try: ## Separate try block in case dir exists but not db file
         os.rmdir( os.path.dirname(DATABASE_PATH) )
     except:
         pass
