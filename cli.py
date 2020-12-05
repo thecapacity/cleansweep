@@ -126,6 +126,11 @@ def curse_command():
 
             click.echo('\t *> %s' % (fNode) )
 
+## NOTE: Removed option to pass dirs - didn't make sense and too complicated
+#@click.option('--dir-name', default=False)
+## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
+##@click.argument('--dir-name', type=click.Path(exists=False, file_okay=False, 
+##                        dir_okay=True, resolve_path=True), default=".")
 @click.command('bless')
 @click.argument('status', required=False, default = "BLESSED")
 @with_appcontext
