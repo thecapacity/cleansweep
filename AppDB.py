@@ -93,10 +93,11 @@ class DirNode(Node):
             Node.__init__(self, abs_path)
 
         self.table_name = 'dirs'
-        self.parent = None
 
-        p, d = os.path.split(abs_path)
-        if d: self.parent = DirNode(p) # If d is None then we're at the top, i.e. '/'
+        ## FIXME: For now being used for brevity's sake
+        self.parent = None # Intended as object version of path string
+        #p, d = os.path.split(abs_path)
+        #if d: self.parent = DirNode(p) # If d is None then we're at the top, i.e. '/'
 
         self.color = colored.bg('dark_olive_green_3a')
 
