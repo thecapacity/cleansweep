@@ -213,10 +213,17 @@ class FileNode(Node):
 
         if self.sha1:
             return self.sha1
-        else: ##rather than just recalculate - query DB to see if we're already stored
+        else: 
+            ##rather than just recalculate - query DB to see if we're already stored
+            ## FIXME: Potential bug if DB file differs from Filesystem version
+            ##      Based on the use case I'm willing to accept this risk
             db_entry = ds[self.table_name].find_one(abs_path=self.abs_path)
 
-            if db_entry:
+            if db_entry and 'size' in db_entry.keys() and self.size != db_entry['size']: 
+                ## FIXME: This is an impartial sub-HASH test
+                click.echo("get_hash: BAD SIZE + HASH for: %s" % (self.abs_path) )
+                self.sha1 = None
+            elif db_entry and 'sha1' in db_entry.keys():
                 self.sha1 = db_entry['sha1']
             else:
                 self.sha1 = self.calculate_hash()
