@@ -167,7 +167,7 @@ def fs_ls_command():
         if not check_dir(r): continue ## Skip directories that don't pass
 
         for f in files:
-            if not check_file( os.path.join(r, f) ): continue
+            if not check_file( os.path.join(r, f) ): continue ## Skip files that don't pass
 
             fNode = AppDB.FileNode( os.path.join(r, f) )
             fNode.is_unique()
