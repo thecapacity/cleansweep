@@ -35,9 +35,10 @@ def create_app(test_config=None):
     def index(directory = None):
         if not directory: directory = request.args.get('directory')
         if not directory: directory = os.getcwd()
+
         app.logger.debug("Scanning Directory: %s" % (directory) )
-        ret = { }
  
+        ret = { }
         for d in [ d for d in os.scandir(directory) if d.is_dir() ]:
             app.logger.debug("\t > %s" % (d.path) )
 
