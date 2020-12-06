@@ -134,7 +134,7 @@ class FileNode(Node):
 
             self.sha1 = None ## Don't auto hash for sha1, rely on get_hash() call
             self.status = "unknown"
-            self.color = colored.bg('blue')
+            self.set_status(self.status)
             self.size = os.path.getsize(abs_path)
 
         else: #Otherwise assume we're loading an OrderedDict from the DB
