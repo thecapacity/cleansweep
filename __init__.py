@@ -1,7 +1,7 @@
 import os
 import json
 
-from flask import Flask, url_for, render_template, request, redirect, g, current_app
+from flask import Flask, url_for, render_template, request, redirect, jsonify
 from markupsafe import escape
 
 def create_app(test_config=None):
@@ -51,7 +51,8 @@ def create_app(test_config=None):
             except:
                 continue
 
-        return json.dumps(ret), {'Content-Type': 'application/json'}
+        return jsonify(ret)
+#        return json.dumps(ret), {'Content-Type': 'application/json'}
 
     def init_app(app):
         app.teardown_appcontext(cli.close_db_command)
