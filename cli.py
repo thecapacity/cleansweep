@@ -95,6 +95,33 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
+
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=True)
+@click.command('rm')
+@with_appcontext
+def db_rm_command(file_name, **kw):
+    """ REMOVE file(s) from the database """
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_delete()
+        return
+
+    dir_name = os.getcwd()
+    for r, subs, files in os.walk(dir_name):
+        if not check_dir(r): continue ## Skip directories that don't pass
+        click.echo('Removing %s' % click.format_filename(r))
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.db_delete()
+
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=False)
 @click.command('curse')
 @with_appcontext
 def curse_command(file_name = False, **kw):
