@@ -40,7 +40,9 @@ def create_app(test_config=None):
  
         ret = { }
         for d in [ d for d in os.scandir(directory) if d.is_dir() ]:
-            app.logger.debug("\t > %s" % (d.path) )
+            if not cli.check_dir(d.path): continue ## Skip directories that don't pass
+    
+            app.logger.debug("Scanning: / %s" % (d.path) )
 
             ret[d.path] = {'path': d.path, 'name': d.name }
             try:
