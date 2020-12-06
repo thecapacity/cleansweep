@@ -97,11 +97,21 @@ def db_ls_dirs_command():
 
 @click.command('curse')
 @with_appcontext
-def curse_command():
+def curse_command(file_name = False, **kw):
     """CURSE the database wih known BAD files - IGNORES hidden .* files"""
-    dir_name = os.getcwd()
 
-    ## It is possible to get files with the same hash this way
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.set_status("CURSED")
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_add()
+        return
+
+    dir_name = os.getcwd()
+    ## It is possible to store files with the same hash into the DB this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
         if not check_dir(r): continue ## Skip directories that don't pass
@@ -110,10 +120,10 @@ def curse_command():
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.bless("CURSED")
+            fNode.set_status("CURSED") ## NOTE: Can overwrite previously BLESSED files
             fNode.db_add()
 
-            click.echo('\t *> %s' % (fNode) )
+            click.echo('\t[%7s] %s' % (fNode.status, fNode) )
 
 ## NOTE: Removed option to pass dirs - didn't make sense and too complicated
 #@click.option('--dir-name', default=False)
