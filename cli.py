@@ -80,10 +80,7 @@ def db_ls_files_command():
     db, ds = AppDB.get_db()
 
     for n in ds['files'].all():
-        if "BLESSED" in n['status']:
-            click.echo('%s *\n\t%s' % (click.format_filename(n['abs_path']), n['sha1']) )
-        else:
-            click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+        click.echo('[%7s] %s\n\t%s' % (n['status'], click.format_filename(n['abs_path']), n['sha1']) )
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
