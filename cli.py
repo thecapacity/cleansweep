@@ -184,10 +184,21 @@ def bless_command(file_name = False, **kw):
 
             click.echo('\t[%s] %s' % (fNode.status, fNode) )
 
+## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                   dir_okay=False, resolve_path=True), required=False)
 @click.command('ls')
 @with_appcontext
-def fs_ls_command():
+def fs_ls_command(file_name = False):
     """List files on the filesystem based on database."""
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        return
+
+    file_list = [ ]
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
