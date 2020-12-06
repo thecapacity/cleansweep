@@ -73,7 +73,7 @@ class Node():
 
         statement = 'DELETE FROM %s WHERE abs_path = "%s"' % (self.table_name, self.abs_path)
         for row in ds.query(statement):
-            print("DELETING: %s" % (row) ) ## Doesn't happen because query returns nothing
+            print("DELETING: %s" % (row) ) ## Doesn't happen because query returns None
 
     def db_add(self):
         pass
