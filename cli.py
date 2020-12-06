@@ -57,28 +57,21 @@ def db_ls_command(files = True, dirs = False, hashes = False):
     db, ds = AppDB.get_db()
 
     if files:
-        #click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['files'].all():
-            #click.echo('%s' % click.format_filename(json.dumps(d)) )
-            #click.echo('%s\n' % (d) )
             Node = AppDB.FileNode(d)
             click.echo('%s' % (Node) )
 
     if dirs:
-        #click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['dirs'].all():
-            #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.DirNode(d['abs_path'])
             click.echo('%s' % (Node) )
 
     if hashes:
-        #click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
-
         for h in ds['files'].distinct('sha1'):
             click.echo('%s' % (h['sha1']))
-            for f in ds['files'].all(sha1=h['sha1']):
-#            for f in ds['files'].find(sha1=h['sha1'], order_by='abs_path'):
-                click.echo('\t / %s' % (click.format_filename(f['abs_path'])) )
+            for f in ds['files'].find(sha1=h['sha1'], order_by='abs_path'):
+                click.echo('\t[%7s] . %s' % (f['status'], 
+                                            click.format_filename(f['abs_path'])) )
 
 @click.command('db-ls-files')
 @with_appcontext
@@ -87,10 +80,7 @@ def db_ls_files_command():
     db, ds = AppDB.get_db()
 
     for n in ds['files'].all():
-        if "BLESSED" in n['status']:
-            click.echo('%s *\n\t%s' % (click.format_filename(n['abs_path']), n['sha1']) )
-        else:
-            click.echo('%s . %s' % (click.format_filename(n['abs_path']), n['sha1']) )
+        click.echo('[%7s] %s\n\t%s' % (n['status'], click.format_filename(n['abs_path']), n['sha1']) )
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
@@ -105,75 +95,170 @@ def db_ls_dirs_command():
         click.echo('\t%s\n' % click.format_filename(json.dumps(n)) )
     return
 
+
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=True)
+@click.command('rm')
+@with_appcontext
+def db_rm_command(file_name, **kw):
+    """ REMOVE file(s) from the database """
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_delete()
+        return
+
+    dir_name = os.getcwd()
+    for r, subs, files in os.walk(dir_name):
+        if not check_dir(r): continue ## Skip directories that don't pass
+        click.echo('Removing %s' % click.format_filename(r))
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            fNode.db_delete()
+
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=False)
 @click.command('curse')
 @with_appcontext
-def curse_command():
+def curse_command(file_name = False, **kw):
     """CURSE the database wih known BAD files - IGNORES hidden .* files"""
-    dir_name = os.getcwd()
 
-    ## It is possible to get files with the same hash this way
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.set_status("CURSED")
+        fNode.score = fNode.test_unique() # Checks against DB by default
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_add()
+        return
+
+    dir_name = os.getcwd()
+    ## It is possible to store files with the same hash into the DB this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
         click.echo('CURSING %s' % click.format_filename(r))
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.bless("CURSED")
+            fNode.set_status("CURSED") ## NOTE: Can overwrite previously BLESSED files
             fNode.db_add()
 
-            click.echo('\t *> %s' % (fNode) )
+            click.echo('\t[%7s] %s' % (fNode.status, fNode) )
 
-## NOTE: Removed option to pass dirs - didn't make sense and too complicated
-#@click.option('--dir-name', default=False)
-## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
-##@click.argument('--dir-name', type=click.Path(exists=False, file_okay=False, 
-##                        dir_okay=True, resolve_path=True), default=".")
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=False)
 @click.command('bless')
-@click.argument('status', required=False, default = "BLESSED")
 @with_appcontext
-def bless_command(**kw):
+def bless_command(file_name = False, **kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.set_status("BLESSED")
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_add()
+        return
+
     dir_name = os.getcwd()
-
-    if 'status' in kw and not "BLESSED" in kw['status']:
-        status = "unknown" ## Only permit bless to clear (not CURSE)
-    else:
-        status = "BLESSED"
-
-    ## It is possible to get files with the same hash this way
+    ## It is possible to store files with the same hash into the DB this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
         click.echo('Blessing %s' % click.format_filename(r))
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.bless(status)
+            fNode.set_status("BLESSED") ## NOTE: Can overwrite previously CURSED files
             fNode.db_add()
 
-            click.echo('\t *> %s' % (fNode) )
+            click.echo('\t[%s] %s' % (fNode.status, fNode) )
 
+## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                   dir_okay=False, resolve_path=True), required=False)
 @click.command('ls')
 @with_appcontext
-def fs_ls_command():
+def fs_ls_command(file_name = False):
     """List files on the filesystem based on database."""
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        return
+
+    file_list = [ ]
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
 
         for f in files:
-            if not check_file( os.path.join(r, f) ): continue
+            if not check_file( os.path.join(r, f) ): continue ## Skip files that don't pass
 
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.is_unique()
-            click.echo('%s' % (fNode) )
+            file_list.append(fNode)
+
+    ## Running this check vs in previous loop in case we wanted to do something else
+    for fNode in file_list: 
+        fNode.score = fNode.test_unique() # Checks against DB by default
+
+    dup_scores = [n.score for n in file_list if n.score > 0] or [0]
+    min_score  = min(dup_scores)
+    max_score  = max(dup_scores)
+    ave_score  = sum(dup_scores) / len(dup_scores)
+    lower_T = int(ave_score * .8) ## arbitrary
+    upper_T = int(ave_score * 1.2) ## arbitrary
+
+    click.echo("\t[%s [%s - %s] %s]\n" % (min_score, lower_T, upper_T, max_score) )
+    for fNode in file_list:
+
+        ## NOTE: The conditionals are meant for each node to have one exclusive action
+        ##
+        if "BLESSED" in fNode.status:
+            pass ## Take no actions - these nodes are already in the DB
+        elif "CURSED" in fNode.status:
+            pass ## Take no actions - these nodes are already in the DB
+        #
+        # We know these won't be BLESSED or CURSED because of earlier checks
+        # There may still be duplicates in the list - e.g. among other filesystem matches
+        #
+        elif fNode.score < 0: 
+            fNode.set_status("GOOD")   # this only means unique vs DB
+
+        elif fNode.score >= upper_T:
+            fNode.set_status("NUKE")   # Strong guess this is duplicate vs. DB
+        
+        elif fNode.score >= lower_T:   # May want to rethink another level/test because same
+            fNode.set_status("CHECK")  # action for: score == min_score and score == lower_T
+
+        else:
+            fNode.set_status("NOTSURE")# > 0 but < lower_T - likely name match only
+
+        click.echo('[%5s] %s' % (fNode.score, fNode) )
+
+    """ 
+    ## Possible way to look / check for dups in FS before thinking about db_add()
+    click.echo("")
+    ## In this case the highest score(s) is actually a good thing
+    ##     e.g. store the highest score and you match a lot of the filesystem dups
+    for fNode in file_list:
+        if fNode.score > 0 or "BLESSED" in fNode.status: continue
+        if not "GOOD" in fNode.status: continue ## Another way to filter
+        fNode.score = fNode.test_unique(file_list)
+        click.echo("%5s > %s" % (fNode.score, fNode) )
+    """
 
 ## FIXME: Placeholder - NEEDS TO BE COMPLETED
 @click.command('clean')
@@ -183,8 +268,7 @@ def fs_clean_command(**kw):
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue # Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
@@ -209,8 +293,7 @@ def fs_sweep_command(**kw):
     replace_dir, _ = os.path.split(dir_name)
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue # Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
@@ -226,5 +309,5 @@ def fs_sweep_command(**kw):
                 ## FIXME: Need to figure out what to do w/ node 
                 ##          - e.g. delete old, make new, store new?
 
-                ## green means it's not in DB and is new 
-                ##          - purple means it is and should be deleted
+                ## Maybe green means it's not in DB and is new 
+                ##       purple means it is and should be deleted

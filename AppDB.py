@@ -30,8 +30,8 @@ def init_db():
     table = ds['files']
     table = ds['dirs']
 
-    files.create_index(['path', 'name', 'parent', 'f_hash'])
-    dirs.create_index(['path', 'name', 'parent', 'n_sub_dirs'])
+    files.create_index(['path', 'name', 'sha1'])
+    dirs.create_index(['path', 'name'])
 
 def close_db(e=None):
     ds = g.pop('ds', None)
@@ -62,7 +62,7 @@ class Node():
         path, name = os.path.split(abs_path)
         self.table_name = None
         self.path = path
-        self.name = name or "/" ### Check: If name is none, then path is "/" and we're root
+        self.name = name or "/" ### If name is none, then path is "/" and we're root
         self.color = ""
 
     def __repr__(self):
@@ -73,7 +73,7 @@ class Node():
 
         statement = 'DELETE FROM %s WHERE abs_path = "%s"' % (self.table_name, self.abs_path)
         for row in ds.query(statement):
-            print("DELETING: %s" % (row) ) ## Doesn't happen because query returns nothing
+            print("DELETING: %s" % (row) ) ## Doesn't happen because query returns None
 
     def db_add(self):
         pass
@@ -91,17 +91,15 @@ class DirNode(Node):
         self.table_name = 'dirs'
 
         ## FIXME: For now being used for brevity's sake
-        self.parent = None # Intended as object version of path string
+        #self.parent = None # Intended as object version of path string
         #p, d = os.path.split(abs_path)
         #if d: self.parent = DirNode(p) # If d is None then we're at the top, i.e. '/'
 
         self.color = colored.bg('dark_olive_green_3a')
 
     def db_add(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
+        ### Will CREATE or UPDATE based on abs_path as unique key - OVERWRITE RISK!
+
         db, ds = get_db()
         table = ds[self.table_name]
 
@@ -112,7 +110,7 @@ class DirNode(Node):
         entry.pop('color')
         entry.pop('table_name')
         entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
-            ## We also don't need to save it because self.path is the text representation
+            ## We don't need to save it because self.path is the text representation
 
         try:
             table = ds[self.table_name]
@@ -123,7 +121,7 @@ class DirNode(Node):
     def db_delete(self):
         ## FIXME: This might leave dangling files if we delete Dir of multiple files
         ##      DirNode Delete should be to delete the DirNode if no files point to it
-        if self.parent: self.parent.db_delete() ## FIXME: Right now self.parent = None
+        #if self.parent: self.parent.db_delete() ## FIXME: Right now self.parent = None
         Node.db_delete(self)
         ## FIXME: Test gets complicated because DirNode needs to know about FileNode 
             ##  (i.e. files table) to run query
@@ -134,49 +132,71 @@ class FileNode(Node):
             abs_path = info
             Node.__init__(self, abs_path)
 
-            self.sha1 = None ## Don't auto hash for sha1, rely on explicit get_hash() call
+            self.sha1 = None ## Don't auto hash for sha1, rely on get_hash() call
             self.status = "unknown"
-            self.color = colored.bg('blue')
+            self.set_status(self.status)
             self.size = os.path.getsize(abs_path)
 
         else: #Otherwise assume we're loading an OrderedDict from the DB
+            
             abs_path = info['abs_path']
             Node.__init__(self, abs_path)
-
+            self.status = "unknown"
             self.sha1 = info['sha1']
             self.size = info['size']
-            self.bless( info['status'] )
+            self.set_status( info['status'] )
 
         self.table_name = 'files'
-        self.parent = DirNode(self.path) ## Convenience helper object vs. self.path string
+        ## FIXME: Not being used at the moment
+        #self.parent = DirNode(self.path) ## Convenience object vs. self.path string
 
-    def bless(self, state = "BLESSED"):
+    def set_status(self, state = "BLESSED"):
         self.status = state
-        if "BLESSED" in state:
-            self.color = colored.bg('gold_3a')
-        elif "CURSED" in state:
+
+        ## FIXME: Add a check to keep BLESSED and CURSED nodes static no matter what
+        if "BLESSED" in state: 
+            ## purple = 'protect'
+            self.color = colored.bg('purple_1b')
+        elif "CURSED" in state: 
+            ## red = 'ready to nuke'
             self.color = colored.bg('red_3a') + colored.attr(5) ## attr(5) is blink
-        elif "unknown" in state:
+        elif "NUKE" in state:
+            ## red = 'ready to nuke'
+            self.color = colored.bg('red_3a')
+        elif "CHECK" in state:
+            ## orange = 'OR-ange you sure it's not a match'
+            self.color = colored.bg('dark_orange_3a')
+        elif "NOTSURE" in state:
+            ## new or navy = 'not sure | maybe unique - e.g. name seems to match'
+            self.color = colored.bg('navy_blue')
+        elif "GOOD" in state: ## Note, this means new to the DB - NOT to the full dir!!
+            ## green = 'good to store'
+            self.color = colored.bg('green')
+        elif "unknown" in state: # Default 'blue' for unknown
             self.color = colored.bg('blue')
-        else:
+        else: #default blue + blink for unlikely case of bad status flag
             self.color = colored.bg('blue') + colored.attr(5)
 
+        ## Another idea for status
+        ## gold = 'golden master' - we've blessed this - ignore others
+        ## self.color == colored.bg('gold_3a'):
+
     def db_add(self):
-        """ d = AppDB.FileNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
+        ### Will CREATE or UPDATE based on abs_path as unique key
+        ##
+        ## FIXME: May overwrite "BLESSED" / "CURSED" e.g. with something like "unknown"
+        ## FIXME: Consider only saving BLESSED | CURSED | unknown states even if "GOOD"
         db, ds = get_db()
         table = ds[self.table_name]
 
         if not self.sha1: self.get_hash()
-        if self.parent: self.parent.db_add()
+        #if self.parent: self.parent.db_add()
 
         entry = self.__dict__.copy()
         entry.pop('color')
         entry.pop('table_name')
-        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
-            ## We also don't need to save it because self.path is the text representation
+        #entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
+            ## self.path is also the text representation so we don't need to save
 
         try:
             table = ds[self.table_name]
@@ -186,18 +206,25 @@ class FileNode(Node):
 
     def db_delete(self):
         Node.db_delete(self)
-        ## Need to delete the file (i.e. self) first so DirNode can see if it should be deleted
-        if self.parent: self.parent.db_delete() ## Child should suggest to parent to delete
+        ## Delete the file (i.e. self) first so DirNode can see if it should be deleted
+        #if self.parent: self.parent.db_delete() ## Child should suggest to parent 
 
     def get_hash(self):
         db, ds = get_db()
 
         if self.sha1:
             return self.sha1
-        else: ##rather than just recalculate - query DB to see if we're already stored
+        else: 
+            ##rather than just recalculate - query DB to see if we're already stored
+            ## FIXME: Potential bug if DB file differs from Filesystem version
+            ##      Based on the use case I'm willing to accept this risk
             db_entry = ds[self.table_name].find_one(abs_path=self.abs_path)
 
-            if db_entry:
+            if db_entry and 'size' in db_entry.keys() and self.size != db_entry['size']: 
+                ## FIXME: This is an impartial sub-HASH test
+                click.echo("get_hash: BAD SIZE + HASH for: %s" % (self.abs_path) )
+                self.sha1 = None
+            elif db_entry and 'sha1' in db_entry.keys():
                 self.sha1 = db_entry['sha1']
             else:
                 self.sha1 = self.calculate_hash()
@@ -216,95 +243,134 @@ class FileNode(Node):
         h = hasher.hexdigest()
         return h
 
-    ## Maybe this should happen on `__repr__(..)` - good enough for now
-    ## FIXME: Make this work with the test_unique()
-    def is_unique(self):
-        ## Return Unique if it's green or purple or gold
-        ##  note !unique is not the same as saying it's a duplicate
-        ##  e.g. orange or blue are unknown
-
-        self.test_unique()
-
-        if self.color == colored.bg('red_3a'):
-            return False
-
-        elif self.color == colored.bg('dark_orange_3a'):
-            return False ## Beware binary logic _may_ be unique or dup
-
-        elif self.color == colored.bg('navy_blue'):
-            return False ## Beware binary logic _may_ be unique or dup
-
-        elif self.color == colored.bg('green'):
-            return True
-
-        elif self.color == colored.bg('purple_1b'):
-            return True
-
-        elif self.color == colored.bg('gold_3a'):
-            return True
-
-        else: ### Would get here if file hasn't been checked: colored.bg('blue')
-            click.echo("is_unique() UNKNOWN CONDITION")
-            click.echo("\t with: %s" % (self.abs_path) )
-
-            return False
-
-    ## FIXME: This isn't quite right - e.g. confusing dups for uniques, etc. 
-    ##             depends on the circumstances - e.g. ordering of adding - of events
-    def test_unique(self):
-        """ Shouldn't be called directly, call `is_unique()` to give change to re-test """
-        my_sha1 = self.get_hash()
-        my_name = self.name
-
-        db, ds = get_db()
-        table = ds[self.table_name]
-
-        ## find_one will return an OrderedDict Object - i.e. the whole row / object
-        hash_match = table.find_one(sha1=my_sha1)
-        name_match = table.find_one(name=my_name)
-
+    def test_unique(self, file_list = None):
+        ### Set color based on uniqueness logic - also return [<0, 0 , >0] depending 
+        ###     <0 => Assume  unique, >0 => Assume NOT unique, =0 => Unsure         
         ## Cases to consider
         ##      * Same Hash and Same ABS_PATH (thus name) -> Mark as red for deletion
         ##      * Same Hash and Diff Name as blessed file -> Mark as orange for review
         ##      * Diff Hash and Same Name as blessed file -> Mark as blue for review
         ##      * Diff Hash and Diff Name as blessed file -> Mark as green for inclusion
-        ##      * Same Hash and Same ABS_PATH as blessed file -> Mark as purple for protection
+        ##      * Same Hash and Same ABS_PATH as blessed file -> Purple for protection
+        ##
+        ## NOTE: THIS ONLY CHECKS THE DB - not against other files in the same dir
+        ##       meaning multiple files may NOT be 'NEW / UNIQUE' in the FS vs. DB scan
+        ## NOTE All numerical "scoring" values are arbitary 
 
-        if self.color == colored.bg('gold_3a'):
-            ##      gold = 'golden master' - we've blessed this - ignore others
-            pass    ## Added to prevent over writing - e.g. with 'purple'
+        ### Used as a wrapper to DB or to list([ FileNode ]) to make logic consistent
+        class file_source():
+            def __init__(self, file_list = None):
+                if isinstance(file_list, list): # if we get a list
+                    self.table = file_list
+                else: #Otherwise assume we're using the DB
+                    db, ds = get_db()
+                    self.table = ds['files']
 
-        elif hash_match and name_match and self.abs_path != name_match['abs_path']:
-            ##      red = 'ready to nuke'
-            self.color = colored.bg('red_3a')
+            def abs_match(self, abs_path):
+                if isinstance(self.table, list): # if we get a list
+                    for fNode in self.table:
+                        if fNode.abs_path == abs_path: return fNode
+                else: #Otherwise assume we're using the DB
+                    match = self.table.find_one(abs_path=abs_path)
+                    if match: return FileNode(match)
+                return None
 
-            ## THIS COULD FAIL badly - i.e. mark a blessed file as nuke-able!!!
-            ##      so check to make sure returned file is not itself blessed
-            if "BLESSED" in name_match['status']: # and self.abs_path == name_match['abs_path']:
-                click.echo("%s" % (self.abs_path) )
-                click.echo("\t%s" % (json.dumps(name_match) ) )
-                self.color = colored.bg('gold_3a')
-                #self.color = colored.bg('purple_1b')
-            ### FIXME: the above is still not right - prevents nuking a blessed file
-            ##      but is also marking a non-blessed dup as safe
+            def sha1_match(self, sha1):
+                if isinstance(self.table, list): # if we get a list
+                    for fNode in self.table:
+                        if fNode.sha1 == sha1: yield fNode
+                else: #Otherwise assume we're using the DB
+                    for match in self.table.find(sha1=sha1):
+                        yield FileNode(match)
+                return None
 
-        elif hash_match and not name_match: # HASH MATCH BUT NOT NAME
-            ##      orange = 'OR-ange you sure it's not a match'
-            self.color = colored.bg('dark_orange_3a')
+            def name_match(self, name):
+                if isinstance(self.table, list): # if we get a list
+                    for fNode in self.table:
+                        if fNode.name == name: yield fNode
+                else: # Otherwise assume we're using the DB
+                    for match in self.table.find(name=name):
+                        yield FileNode(match)
+                return None
 
-        elif not hash_match and name_match: # NAME MATCH BUT NOT HASH
-            ##      navy = 'name matches something'
-            self.color = colored.bg('navy_blue')
+        FILES = file_source(file_list)
 
-        elif not hash_match and not name_match: # NO MATCH - unique file
-            ##      green = 'good to store'
-            self.color = colored.bg('green')
+        ## Good is < 0 so we can set pruning thresholds > 0
+        ## numbers are arbitrary and used in CLI logic to set thresholds
+        STATUS_OPTIONS = { "BLESSED": -5000, "CURSED": 5000, "unknown": 0 }
 
-        elif hash_match and name_match and self.abs_path == name_match['abs_path']:
-            ### THIS FILE IS A GOLDEN MASTER FILE - DO NOT DELETE!!!
-            ##      purple = 'protect'
-            self.color = colored.bg('purple_1b')
+        ### These should be the easy cases - don't rely on color for testing unique
+        ## FIXME: Consider adding more points for name or SHA1 collisions too
+        if "CURSED" in self.status:
+            self.set_status("CURSED")
+            return STATUS_OPTIONS.get(self.status, 0) 
+        elif "BLESSED" in self.status:
+            self.set_status("BLESSED")
+            return STATUS_OPTIONS.get(self.status, 0) 
 
-        else: ### Should Never get here
-            click.echo("test_unique() UNKNOWN CONDITION")
-            click.echo("\t with: %s" % (self.abs_path) )
+        abs_match = FILES.abs_match(self.abs_path)
+        if abs_match: # likely we found ourself - let's trust it (FIXME: BUG RISK)
+
+            ## NOTE: This may set status as unknown even for BLESSED | CURSED FILES
+            ##         e.g. if the file is in the DB not quite what we want 
+            ##              but is kind of a safe bet it won't happen based on usage
+            if self.size != abs_match.size: ## FIXME: An impartial sub-HASH test
+                click.echo("test_unique: BAD SIZE and HASH for: %s" % (self.abs_path) )
+                self.set_status( "unknown" )
+                return 0
+
+            if self.sha1 and self.sha1 != abs_match.sha1: # No use testing `None`
+                click.echo("test_unique: BAD HASH for: %s" % (self.abs_path) )
+                self.set_status( "unknown" )
+                return 0 ## FIXME: Should we _do_ anything else here to recover?
+
+            ## FIXME: Consider comparing actual file SHA1 and DB
+            ## FIXME: `get_hash()` could have BAD side effect of setting a bad hash
+            ##            if DB and file don't match contents but do match in abs_path
+            ##            i.e. - it will ignore the file hash and use DB['sha1']
+            ##            This means we _could_ get an abs_path with the wrong hash
+            ##            This is acceptable for our planned use case
+            ## NOTE: IF we don't have a sha1 get_hash() can/will overwrite with DB #'s
+            self.get_hash()
+            self.set_status( abs_match.status ) # Make status match 
+
+            ## return if known BLESSED | CURSED otherwise fall through
+            if "BLESSED" in self.status or "CURSED" in self.status: 
+                return STATUS_OPTIONS.get(self.status, 0)
+
+ 
+        ## OK, no match based on absolute path - let's try other ideas
+        ## FIXME: Consider comparing actual file SHA1 and DB
+        ## FIXME: `get_hash()` could have BAD side effect of setting a bad hash
+        ##            if DB and file don't match contents but do match in abs_path
+        ##            i.e. - it will ignore the file hash and use DB['sha1']
+        ##            This means we _could_ get an abs_path with the wrong hash
+        ##            This is acceptable for our planned use case
+        ##
+        ## NOTE: IF we don't have a sha1 get_hash() can/will overwrite with DB #'s
+        if not self.sha1: self.get_hash()
+        ret = -1 # using < 0 so as to default in CLI to saving vs. unknown
+
+        ## This will be a true hash match - NOT an abs_path match which happens above
+        ## NOTE: if hash matches then size is almost certainly a match so not checking
+        for hash_match in FILES.sha1_match(self.sha1):
+            if self.abs_path == hash_match.abs_path: continue # don't count self
+            if "CURSED" in hash_match.status: ret += 1000 # BAD IF WE MATCH CURSED
+            ret += 500  # Arbitrary threshold / heuristic
+
+        for name_match in FILES.name_match(self.name):
+            if self.abs_path == name_match.abs_path: continue # don't count self
+            if "CURSED" in name_match.status: ret += 500 # BAD IF WE MATCH CURSED
+            ret += 200
+
+        return ret
+
+        ## FIXME: Do something special and test if directory chain looks similar
+        #for name_match in table.find(name=self.name):
+        #    if self.abs_path == name_match['abs_path']: continue #don't count self
+        #    ret += 100
+        #    #my_p, my_d = os.path.split(self.path)
+        #    #n_p, n_d = os.path.split(name_match['path'])
+
+        click.echo("test_unique: UNKNOWN TEST for: %s" % (self.abs_path) )
+        return 0
