@@ -152,15 +152,34 @@ class FileNode(Node):
 
     def set_status(self, state = "BLESSED"):
         self.status = state
-        if "BLESSED" in state:
-            self.color = colored.bg('gold_3a')
-        elif "CURSED" in state:
+
+        ## FIXME: Add a check to keep BLESSED and CURSED nodes static no matter what
+        if "BLESSED" in state: 
+            ## purple = 'protect'
+            self.color = colored.bg('purple_1b')
+        elif "CURSED" in state: 
+            ## red = 'ready to nuke'
             self.color = colored.bg('red_3a') + colored.attr(5) ## attr(5) is blink
-        elif "unknown" in state:
+        elif "NUKE" in state:
+            ## red = 'ready to nuke'
+            self.color = colored.bg('red_3a')
+        elif "CHECK" in state:
+            ## orange = 'OR-ange you sure it's not a match'
+            self.color = colored.bg('dark_orange_3a')
+        elif "NOTSURE" in state:
+            ## new or navy = 'not sure | maybe unique - e.g. name seems to match'
+            self.color = colored.bg('navy_blue')
+        elif "GOOD" in state: ## Note, this means new to the DB - NOT to the full dir!!
+            ## green = 'good to store'
+            self.color = colored.bg('green')
+        elif "unknown" in state: # Default 'blue' for unknown
             self.color = colored.bg('blue')
-        else:
+        else: #default blue + blink for unlikely case of bad status flag
             self.color = colored.bg('blue') + colored.attr(5)
 
+        ## Another idea for status
+        ## gold = 'golden master' - we've blessed this - ignore others
+        ## self.color == colored.bg('gold_3a'):
     def db_add(self):
         """ d = AppDB.FileNode(row['path'])
             d.db_add()
