@@ -57,23 +57,16 @@ def db_ls_command(files = True, dirs = False, hashes = False):
     db, ds = AppDB.get_db()
 
     if files:
-        #click.echo('Listing <files> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['files'].all():
-            #click.echo('%s' % click.format_filename(json.dumps(d)) )
-            #click.echo('%s\n' % (d) )
             Node = AppDB.FileNode(d)
             click.echo('%s' % (Node) )
 
     if dirs:
-        #click.echo('Listing <dirs> stored in the database: %s' % (g.DATABASE_PATH))
         for d in ds['dirs'].all():
-            #click.echo('%s' % click.format_filename(json.dumps(d)) )
             Node = AppDB.DirNode(d['abs_path'])
             click.echo('%s' % (Node) )
 
     if hashes:
-        #click.echo('Listing <hashes> stored in the database: %s' % (g.DATABASE_PATH))
-
         for h in ds['files'].distinct('sha1'):
             click.echo('%s' % (h['sha1']))
             for f in ds['files'].all(sha1=h['sha1']):
