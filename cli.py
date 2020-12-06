@@ -114,8 +114,7 @@ def curse_command():
     ## It is possible to get files with the same hash this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
         click.echo('CURSING %s' % click.format_filename(r))
 
         for f in files:
@@ -146,8 +145,7 @@ def bless_command(**kw):
     ## It is possible to get files with the same hash this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
         click.echo('Blessing %s' % click.format_filename(r))
 
         for f in files:
@@ -165,8 +163,7 @@ def fs_ls_command():
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue ## Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
@@ -183,8 +180,7 @@ def fs_clean_command(**kw):
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue # Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
@@ -209,8 +205,7 @@ def fs_sweep_command(**kw):
     replace_dir, _ = os.path.split(dir_name)
 
     for r, subs, files in os.walk(dir_name):
-        ## Skip directories that don't pass - e.g. are mounts, links, or start with '.'
-        if not check_dir(r): continue
+        if not check_dir(r): continue # Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
@@ -226,5 +221,5 @@ def fs_sweep_command(**kw):
                 ## FIXME: Need to figure out what to do w/ node 
                 ##          - e.g. delete old, make new, store new?
 
-                ## green means it's not in DB and is new 
-                ##          - purple means it is and should be deleted
+                ## Maybe green means it's not in DB and is new 
+                ##       purple means it is and should be deleted
