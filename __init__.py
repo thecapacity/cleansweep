@@ -31,6 +31,30 @@ def create_app(test_config=None):
     if not os.path.exists( app.config['DST_DIR_NAME'] ):
         os.makedirs(app.config['DST_DIR_NAME'])
 
+    #endpoint for search
+    @app.route('/search', methods=['GET', 'POST'])
+    def search():
+        if request.method == "POST":
+            search_string = request.form['search_string']
+
+            app.logger.debug("Searching for: %s" % (search_string) )
+
+            data = { } # This would be where to query DB based on...
+            if "hashes" in search_string:
+                db, ds = AppDB.get_db()
+
+                for h in ds['files'].distinct('sha1'):
+                    sha1 = h['sha1']
+                    app.logger.debug("Hashes for: %s" % (sha1))
+                    data[sha1] = [ ]
+                    for f in ds['files'].find(sha1=h['sha1'], order_by='abs_path', limit=1):
+                        app.logger.debug("\t %s" % (f['abs_path']))
+                        data[sha1].append( f['abs_path'] )
+
+            return render_template('search.html', data=data)
+
+        return render_template('search.html')
+
     @app.route('/')
     def index(directory = None):
         if not directory: directory = request.args.get('directory')
