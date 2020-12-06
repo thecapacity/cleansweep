@@ -138,12 +138,13 @@ class FileNode(Node):
             self.size = os.path.getsize(abs_path)
 
         else: #Otherwise assume we're loading an OrderedDict from the DB
+            
             abs_path = info['abs_path']
             Node.__init__(self, abs_path)
-
+            self.status = "unknown"
             self.sha1 = info['sha1']
             self.size = info['size']
-            self.bless( info['status'] )
+            self.set_status( info['status'] )
 
         self.table_name = 'files'
         ## FIXME: Not being used at the moment
