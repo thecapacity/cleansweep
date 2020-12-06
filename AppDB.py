@@ -91,17 +91,15 @@ class DirNode(Node):
         self.table_name = 'dirs'
 
         ## FIXME: For now being used for brevity's sake
-        self.parent = None # Intended as object version of path string
+        #self.parent = None # Intended as object version of path string
         #p, d = os.path.split(abs_path)
         #if d: self.parent = DirNode(p) # If d is None then we're at the top, i.e. '/'
 
         self.color = colored.bg('dark_olive_green_3a')
 
     def db_add(self):
-        """ d = AppDB.DirNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
+        ### Will CREATE or UPDATE based on abs_path as unique key - OVERWRITE RISK!
+
         db, ds = get_db()
         table = ds[self.table_name]
 
@@ -112,7 +110,7 @@ class DirNode(Node):
         entry.pop('color')
         entry.pop('table_name')
         entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
-            ## We also don't need to save it because self.path is the text representation
+            ## We don't need to save it because self.path is the text representation
 
         try:
             table = ds[self.table_name]
@@ -123,7 +121,7 @@ class DirNode(Node):
     def db_delete(self):
         ## FIXME: This might leave dangling files if we delete Dir of multiple files
         ##      DirNode Delete should be to delete the DirNode if no files point to it
-        if self.parent: self.parent.db_delete() ## FIXME: Right now self.parent = None
+        #if self.parent: self.parent.db_delete() ## FIXME: Right now self.parent = None
         Node.db_delete(self)
         ## FIXME: Test gets complicated because DirNode needs to know about FileNode 
             ##  (i.e. files table) to run query
@@ -148,7 +146,8 @@ class FileNode(Node):
             self.bless( info['status'] )
 
         self.table_name = 'files'
-        self.parent = DirNode(self.path) ## Convenience helper object vs. self.path string
+        ## FIXME: Not being used at the moment
+        #self.parent = DirNode(self.path) ## Convenience object vs. self.path string
 
     def bless(self, state = "BLESSED"):
         self.status = state
@@ -170,13 +169,13 @@ class FileNode(Node):
         table = ds[self.table_name]
 
         if not self.sha1: self.get_hash()
-        if self.parent: self.parent.db_add()
+        #if self.parent: self.parent.db_add()
 
         entry = self.__dict__.copy()
         entry.pop('color')
         entry.pop('table_name')
-        entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
-            ## We also don't need to save it because self.path is the text representation
+        #entry.pop('parent') ### This MUST be deleted as obj type can't be stored in DB
+            ## self.path is also the text representation so we don't need to save
 
         try:
             table = ds[self.table_name]
@@ -186,8 +185,8 @@ class FileNode(Node):
 
     def db_delete(self):
         Node.db_delete(self)
-        ## Need to delete the file (i.e. self) first so DirNode can see if it should be deleted
-        if self.parent: self.parent.db_delete() ## Child should suggest to parent to delete
+        ## Delete the file (i.e. self) first so DirNode can see if it should be deleted
+        #if self.parent: self.parent.db_delete() ## Child should suggest to parent 
 
     def get_hash(self):
         db, ds = get_db()
