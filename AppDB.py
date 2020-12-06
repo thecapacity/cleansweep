@@ -62,7 +62,7 @@ class Node():
         path, name = os.path.split(abs_path)
         self.table_name = None
         self.path = path
-        self.name = name or "/" ### Check: If name is none, then path is "/" and we're root
+        self.name = name or "/" ### If name is none, then path is "/" and we're root
         self.color = ""
 
     def __repr__(self):
