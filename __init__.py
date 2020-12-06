@@ -55,13 +55,17 @@ def create_app(test_config=None):
         app.cli.add_command(cli.init_db_command)
         app.cli.add_command(cli.drop_db_command)
 
-        app.cli.add_command(cli.db_ls_command) #More flexible list <x> in database
-        app.cli.add_command(cli.db_ls_files_command) #list files in database
-        app.cli.add_command(cli.db_ls_dirs_command) #list dirs in database - currently none
+        app.cli.add_command(cli.db_ls_command) #More flexible list <x> in DB
+        app.cli.add_command(cli.db_ls_files_command) #list files in DB
+        app.cli.add_command(cli.db_ls_dirs_command) #list dirs in DB 
 
-        app.cli.add_command(cli.curse_command) # Recursively scan and CURSE all non-zero files
-        app.cli.add_command(cli.bless_command) # Recursively scan dir and add all non-zero files
-        app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and add all non-zero files
+        app.cli.add_command(cli.db_rm_command) #rm file(s) from the DB
+
+        app.cli.add_command(cli.curse_command) # CURSE file(s)
+        app.cli.add_command(cli.bless_command) # BLESS file(s)
+
+        app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and CMP files
+
         app.cli.add_command(cli.fs_clean_command) # Recursively delete files
         app.cli.add_command(cli.fs_sweep_command) # Recursively move unique files
 
