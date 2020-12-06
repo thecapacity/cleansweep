@@ -180,11 +180,12 @@ class FileNode(Node):
         ## Another idea for status
         ## gold = 'golden master' - we've blessed this - ignore others
         ## self.color == colored.bg('gold_3a'):
+
     def db_add(self):
-        """ d = AppDB.FileNode(row['path'])
-            d.db_add()
-            ### Will CREATE or UPDATE based on abs_path as unique key
-        """
+        ### Will CREATE or UPDATE based on abs_path as unique key
+        ##
+        ## FIXME: May overwrite "BLESSED" / "CURSED" e.g. with something like "unknown"
+        ## FIXME: Consider only saving BLESSED | CURSED | unknown states even if "GOOD"
         db, ds = get_db()
         table = ds[self.table_name]
 
