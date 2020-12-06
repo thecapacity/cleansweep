@@ -125,24 +125,25 @@ def curse_command(file_name = False, **kw):
 
             click.echo('\t[%7s] %s' % (fNode.status, fNode) )
 
-## NOTE: Removed option to pass dirs - didn't make sense and too complicated
-#@click.option('--dir-name', default=False)
-## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
-##@click.argument('--dir-name', type=click.Path(exists=False, file_okay=False, 
-##                        dir_okay=True, resolve_path=True), default=".")
+@click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=False, resolve_path=True), required=False)
 @click.command('bless')
-@click.argument('status', required=False, default = "BLESSED")
 @with_appcontext
-def bless_command(**kw):
+def bless_command(file_name = False, **kw):
     """Populate the database wih confirmed files - IGNORES hidden .* files"""
+
+    if file_name:
+        fNode = AppDB.FileNode(file_name)
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.set_status("BLESSED")
+        fNode.score = fNode.test_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        fNode.db_add()
+        return
+
     dir_name = os.getcwd()
-
-    if 'status' in kw and not "BLESSED" in kw['status']:
-        status = "unknown" ## Only permit bless to clear (not CURSE)
-    else:
-        status = "BLESSED"
-
-    ## It is possible to get files with the same hash this way
+    ## It is possible to store files with the same hash into the DB this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
         if not check_dir(r): continue ## Skip directories that don't pass
@@ -151,10 +152,10 @@ def bless_command(**kw):
         for f in files:
             if not check_file( os.path.join(r, f) ): continue
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.bless(status)
+            fNode.set_status("BLESSED") ## NOTE: Can overwrite previously CURSED files
             fNode.db_add()
 
-            click.echo('\t *> %s' % (fNode) )
+            click.echo('\t[%s] %s' % (fNode.status, fNode) )
 
 @click.command('ls')
 @with_appcontext
