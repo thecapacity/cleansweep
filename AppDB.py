@@ -150,7 +150,7 @@ class FileNode(Node):
         ## FIXME: Not being used at the moment
         #self.parent = DirNode(self.path) ## Convenience object vs. self.path string
 
-    def bless(self, state = "BLESSED"):
+    def set_status(self, state = "BLESSED"):
         self.status = state
         if "BLESSED" in state:
             self.color = colored.bg('gold_3a')
