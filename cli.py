@@ -208,8 +208,57 @@ def fs_ls_command(file_name = False):
             if not check_file( os.path.join(r, f) ): continue ## Skip files that don't pass
 
             fNode = AppDB.FileNode( os.path.join(r, f) )
-            fNode.is_unique()
-            click.echo('%s' % (fNode) )
+            file_list.append(fNode)
+
+    ## Running this check vs in previous loop in case we wanted to do something else
+    for fNode in file_list: 
+        fNode.score = fNode.test_unique() # Checks against DB by default
+
+    dup_scores = [n.score for n in file_list if n.score > 0] or [0]
+    min_score  = min(dup_scores)
+    max_score  = max(dup_scores)
+    ave_score  = sum(dup_scores) / len(dup_scores)
+    lower_T = int(ave_score * .8) ## arbitrary
+    upper_T = int(ave_score * 1.2) ## arbitrary
+
+    click.echo("\t[%s [%s - %s] %s]\n" % (min_score, lower_T, upper_T, max_score) )
+    for fNode in file_list:
+
+        ## NOTE: The conditionals are meant for each node to have one exclusive action
+        ##
+        if "BLESSED" in fNode.status:
+            pass ## Take no actions - these nodes are already in the DB
+        elif "CURSED" in fNode.status:
+            pass ## Take no actions - these nodes are already in the DB
+        #
+        # We know these won't be BLESSED or CURSED because of earlier checks
+        # There may still be duplicates in the list - e.g. among other filesystem matches
+        #
+        elif fNode.score < 0: 
+            fNode.set_status("GOOD")   # this only means unique vs DB
+
+        elif fNode.score >= upper_T:
+            fNode.set_status("NUKE")   # Strong guess this is duplicate vs. DB
+        
+        elif fNode.score >= lower_T:   # May want to rethink another level/test because same
+            fNode.set_status("CHECK")  # action for: score == min_score and score == lower_T
+
+        else:
+            fNode.set_status("NOTSURE")# > 0 but < lower_T - likely name match only
+
+        click.echo('[%5s] %s' % (fNode.score, fNode) )
+
+    """ 
+    ## Possible way to look / check for dups in FS before thinking about db_add()
+    click.echo("")
+    ## In this case the highest score(s) is actually a good thing
+    ##     e.g. store the highest score and you match a lot of the filesystem dups
+    for fNode in file_list:
+        if fNode.score > 0 or "BLESSED" in fNode.status: continue
+        if not "GOOD" in fNode.status: continue ## Another way to filter
+        fNode.score = fNode.test_unique(file_list)
+        click.echo("%5s > %s" % (fNode.score, fNode) )
+    """
 
 ## FIXME: Placeholder - NEEDS TO BE COMPLETED
 @click.command('clean')
