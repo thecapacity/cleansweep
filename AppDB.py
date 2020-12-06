@@ -132,7 +132,7 @@ class FileNode(Node):
             abs_path = info
             Node.__init__(self, abs_path)
 
-            self.sha1 = None ## Don't auto hash for sha1, rely on explicit get_hash() call
+            self.sha1 = None ## Don't auto hash for sha1, rely on get_hash() call
             self.status = "unknown"
             self.color = colored.bg('blue')
             self.size = os.path.getsize(abs_path)
