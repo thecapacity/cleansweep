@@ -260,6 +260,29 @@ def fs_ls_command(file_name = False):
         click.echo("%5s > %s" % (fNode.score, fNode) )
     """
 
+@click.command('hunt')
+@with_appcontext
+def fs_hunt_command(**kw):
+    """ HUNT for files on the filesystem based on BLESSED files in database."""
+    db, ds = AppDB.get_db()
+    table = ds['files']
+
+    file_list = [ ]
+    dir_name = os.getcwd()
+
+    for r, subs, files in os.walk(dir_name):
+        if not check_dir(r): continue ## Skip directories that don't pass
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue ## Skip some files
+
+            fNode_fs = AppDB.FileNode( os.path.join(r, f) )
+            fNode_db = table.find_one('abs_path' != fNode_fs.abs_path, name=fNode_fs.name, sha1=fNode_fs.get_hash(), status="BLESSED")
+
+            if fNode_db:
+                fNode_fs.score = fNode_fs.test_unique()
+                click.echo('NUKE: [%5s] %s' % (fNode_fs.score, fNode_fs) )
+
 ## FIXME: Placeholder - NEEDS TO BE COMPLETED
 @click.command('clean')
 @with_appcontext

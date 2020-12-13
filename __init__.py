@@ -94,6 +94,7 @@ def create_app(test_config=None):
 
         app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and CMP files
 
+        app.cli.add_command(cli.fs_hunt_command) # Recursively find files to DEL!
         app.cli.add_command(cli.fs_clean_command) # Recursively delete files
         app.cli.add_command(cli.fs_sweep_command) # Recursively move unique files
 
