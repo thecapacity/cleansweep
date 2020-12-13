@@ -280,7 +280,7 @@ def fs_hunt_command(**kw):
 
             fNode_fs = AppDB.FileNode( os.path.join(r, f) )
             fNode_db = table.find_one('abs_path' != fNode_fs.abs_path, name=fNode_fs.name, sha1=fNode_fs.get_hash(), status="BLESSED")
-
+            ## No clue why but `find_one(...) needs abs_path quoted
             if fNode_db:
                 fNode_fs.score = fNode_fs.test_unique()
                 click.echo('NUKE: [%5s] %s' % (fNode_fs.score, fNode_fs) )
