@@ -36,14 +36,16 @@ def create_app(test_config=None):
         data = { }
 
         try:
-            print("Search:", request.form['search_string'])
+            print("Search String:", request.form['search_string'])
         except:
             pass
 
         return render_template('search.html', data=data)
 
     def init_app(app):
-        pass
+        app.teardown_appcontext(cli.close_db_command)
+        app.cli.add_command(cli.init_db_command)
+        app.cli.add_command(cli.drop_db_command)
 
     init_app(app)
 
