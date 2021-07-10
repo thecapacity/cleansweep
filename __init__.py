@@ -30,3 +30,9 @@ def create_app(test_config=None):
         pass
 
 
+def init_app(app):
+
+    init_app(app)
+
+    return app
+
