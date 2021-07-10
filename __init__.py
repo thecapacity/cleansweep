@@ -30,20 +30,15 @@ def create_app(test_config=None):
         pass
 
     #endpoint for search
+    @app.route('/', methods=['GET'])
     @app.route('/search', methods=['GET', 'POST'])
-    def search():
+    def search(**kwargs):
         data = { }
 
         try:
             print("Search:", request.form['search_string'])
         except:
             pass
-
-        return render_template('search.html', data=data)
-
-    @app.route('/', methods=['GET'])
-    def index():
-        data = { }
 
         return render_template('search.html', data=data)
 
