@@ -14,12 +14,18 @@
         </form>
         <p></p>
         <center>
-        {% for item in data %}
+        <table>
             <tr>
-                <td> {{item[0]}} by {{item[1]}}</td>
-                </br>
+                <th>item</th>
+                <th>data</th>
             </tr>
-        {% endfor %}
+            {% for item in data %}
+            <tr>
+                <td>{{item}}</td>
+                <td>{{data[item]}}</td>
+            </tr>
+            {% endfor %}
+        </table>
         </center>
     </body>
 </html>
