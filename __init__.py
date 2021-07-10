@@ -91,6 +91,7 @@ def create_app(test_config=None):
 
         app.cli.add_command(cli.curse_command) # CURSE file(s)
         app.cli.add_command(cli.bless_command) # BLESS file(s)
+        app.cli.add_command(cli.hash_scan_command) # SPECIAL TO ADD TO HASH DB
 
         app.cli.add_command(cli.fs_ls_command) # Recursively scan dir and CMP files
 

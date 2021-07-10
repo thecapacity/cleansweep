@@ -30,7 +30,7 @@ def init_db():
     table = ds['files']
     table = ds['dirs']
 
-    files.create_index(['path', 'name', 'sha1'])
+    files.create_index(['abs_path', 'name', 'sha1'])
     dirs.create_index(['path', 'name'])
 
 def close_db(e=None):
@@ -215,6 +215,22 @@ class FileNode(Node):
         if self.sha1:
             return self.sha1
         else: 
+
+            try:
+                HASH_DB_PATH = 'sqlite:///' + \
+                               '/Users/wjhuie/bin/instance/cleansweep_hashes.sqlite'
+
+                db = dataset.connect(HASH_DB_PATH)
+                hash_ds = db['hashes']
+
+                db_entry = hash_ds.find_one(abs_path=self.abs_path)
+
+                if db_entry:
+                    self.sha1 = db_entry['sha1']
+                    return self.sha1
+            except:
+                pass ## If we can't find ourselves in special HASHES DB try files
+
             ##rather than just recalculate - query DB to see if we're already stored
             ## FIXME: Potential bug if DB file differs from Filesystem version
             ##      Based on the use case I'm willing to accept this risk
@@ -242,6 +258,33 @@ class FileNode(Node):
                 buf = afile.read(BLOCKSIZE)
         h = hasher.hexdigest()
         return h
+
+    def shade_unique(self, lower_T = 400, upper_T = 900):
+        try:
+            self.score
+        except:
+        #    self.score = self.test_unique()
+            self.score = -1
+
+        if "BLESSED" in self.status:
+            pass ## Take no actions - these nodes are already in the DB
+        elif "CURSED" in self.status:
+            pass ## Take no actions - these nodes are already in the DB
+        #
+        # We know these won't be BLESSED or CURSED because of earlier checks
+        # There may still be duplicates in the list - e.g. among other filesystem matches
+        #
+        elif self.score < 0:
+            self.set_status("GOOD")   # this only means unique vs DB
+
+        elif self.score >= upper_T:
+            self.set_status("NUKE")   # Strong guess this is duplicate vs. DB
+
+        elif self.score >= lower_T:   # May want to rethink another level/test because same
+            self.set_status("CHECK")  # action for: score == min_score and score == lower
+
+        else:
+            self.set_status("NOTSURE")# > 0 but < lower_T - likely name match only
 
     def test_unique(self, file_list = None):
         ### Set color based on uniqueness logic - also return [<0, 0 , >0] depending 
@@ -292,6 +335,8 @@ class FileNode(Node):
                     for match in self.table.find(name=name):
                         yield FileNode(match)
                 return None
+
+        self.get_hash()
 
         FILES = file_source(file_list)
 
@@ -355,13 +400,13 @@ class FileNode(Node):
         ## NOTE: if hash matches then size is almost certainly a match so not checking
         for hash_match in FILES.sha1_match(self.sha1):
             if self.abs_path == hash_match.abs_path: continue # don't count self
-            if "CURSED" in hash_match.status: ret += 1000 # BAD IF WE MATCH CURSED
-            ret += 500  # Arbitrary threshold / heuristic
+            ret += 1000  # Arbitrary threshold / heuristic
+            if "CURSED" in hash_match.status: ret *= 2 # BAD IF WE MATCH CURSED
 
         for name_match in FILES.name_match(self.name):
             if self.abs_path == name_match.abs_path: continue # don't count self
-            if "CURSED" in name_match.status: ret += 500 # BAD IF WE MATCH CURSED
             ret += 200
+            if "CURSED" in name_match.status: ret *= 2 # BAD IF WE MATCH CURSED
 
         return ret
 

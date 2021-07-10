@@ -110,6 +110,7 @@ def db_rm_command(file_name, **kw):
         fNode.db_delete()
         return
 
+    ## FIXME: file_name could be a different directory THIS WILL IGNORE
     ## Means we passed in '.' and we'll recursively remove all files from DB
     dir_name = os.getcwd()
     for r, subs, files in os.walk(dir_name):
@@ -127,7 +128,7 @@ def db_rm_command(file_name, **kw):
 @click.command('curse')
 @with_appcontext
 def curse_command(file_name = False, **kw):
-    """CURSE the database wih known BAD files - IGNORES hidden .* files"""
+    """ CURSE the database wih known BAD files """
 
     if file_name:
         fNode = AppDB.FileNode(file_name)
@@ -155,13 +156,13 @@ def curse_command(file_name = False, **kw):
             click.echo('\t[%7s] %s' % (fNode.status, fNode) )
 
 @click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
-                 dir_okay=False, resolve_path=True), required=False)
+                 dir_okay=True, resolve_path=True), required=False)
 @click.command('bless')
 @with_appcontext
 def bless_command(file_name = False, **kw):
-    """Populate the database wih confirmed files - IGNORES hidden .* files"""
+    """ Populate the database wih confirmed files """
 
-    if file_name:
+    if file_name and os.path.isfile(file_name):
         fNode = AppDB.FileNode(file_name)
         fNode.score = fNode.test_unique()
         click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
@@ -171,7 +172,10 @@ def bless_command(file_name = False, **kw):
         fNode.db_add()
         return
 
-    dir_name = os.getcwd()
+    if file_name:
+        dir_name = file_name
+    else:
+        dir_name = os.getcwd()
     ## It is possible to store files with the same hash into the DB this way
     ##    that should be ok - but worth noting that DB HASHES may not be unique
     for r, subs, files in os.walk(dir_name):
@@ -189,9 +193,11 @@ def bless_command(file_name = False, **kw):
 ## Via: https://click.palletsprojects.com/en/7.x/api/#click.Path
 @click.argument('file_name', type=click.Path(exists=True, file_okay=True, 
                    dir_okay=False, resolve_path=True), required=False)
+@click.option('-threshold', '-t', default=0)
+@click.option('--all/--no-all', default=False)
 @click.command('ls')
 @with_appcontext
-def fs_ls_command(file_name = False):
+def fs_ls_command(file_name = False, **kw): #, show_all_files = False):
     """List files on the filesystem based on database."""
 
     if file_name:
@@ -219,7 +225,12 @@ def fs_ls_command(file_name = False):
     dup_scores = [n.score for n in file_list if n.score > 0] or [0]
     min_score  = min(dup_scores)
     max_score  = max(dup_scores)
-    ave_score  = sum(dup_scores) / len(dup_scores)
+
+    if kw['threshold'] <= 0:
+       ave_score  = sum(dup_scores) / len(dup_scores)
+    else:
+       ave_score = kw['threshold']
+
     lower_T = int(ave_score * .8) ## arbitrary
     upper_T = int(ave_score * 1.2) ## arbitrary
 
@@ -248,7 +259,13 @@ def fs_ls_command(file_name = False):
         else:
             fNode.set_status("NOTSURE")# > 0 but < lower_T - likely name match only
 
-        click.echo('[%5s] %s' % (fNode.score, fNode) )
+        if fNode.score > 0: ## FIXME: Make commandline flag
+            if kw and kw['all']:
+                click.echo('[%5s] %s' % (fNode.score, fNode) )
+            elif not kw['all'] and fNode.status not in ['CURSED', 'NUKE']:
+                ##Default only show ones to save
+                click.echo('[%5s] %s' % (fNode.score, fNode) )
+             
 
     """ 
     ## Possible way to look / check for dups in FS before thinking about db_add()
@@ -262,34 +279,58 @@ def fs_ls_command(file_name = False):
         click.echo("%5s > %s" % (fNode.score, fNode) )
     """
 
+## FIXME: How does this relate to `flask ls` and scoring?
+
+@click.argument('path', type=click.Path(exists=True, file_okay=True,
+                   dir_okay=True, resolve_path=True), required=False)
+@click.option('-threshold', '-t', default=0)
+@click.option('--all/--no-all', default=False)
+@click.option('--blessed/--no-blessed', default=False)
+@click.option('--good/--no-good', default=False)
+@click.option('--nuke/--no-nuke', default=True)
 @click.command('hunt')
 @with_appcontext
-def fs_hunt_command(**kw):
+def fs_hunt_command(path = None, **kw):
     """ HUNT for files on the filesystem based on BLESSED files in database."""
+
+    if path and os.path.isfile(path):
+        fNode = AppDB.FileNode(path)
+        fNode.score = fNode.test_unique()
+        fNode.shade_unique()
+        click.echo('[%7s] @ [%5s] %s' % (fNode.status, fNode.score, fNode) )
+        return
+
     db, ds = AppDB.get_db()
     table = ds['files']
 
-    file_list = [ ]
-    dir_name = os.getcwd()
+    if not path: path = os.getcwd()
 
-    for r, subs, files in os.walk(dir_name):
+    for r, subs, files in os.walk(path):
         if not check_dir(r): continue ## Skip directories that don't pass
 
         for f in files:
             if not check_file( os.path.join(r, f) ): continue ## Skip some files
 
             fNode_fs = AppDB.FileNode( os.path.join(r, f) )
-            fNode_db = table.find_one('abs_path' != fNode_fs.abs_path, name=fNode_fs.name, sha1=fNode_fs.get_hash(), status="BLESSED")
-            ## No clue why but `find_one(...) needs abs_path quoted
-            if fNode_db:
-                fNode_fs.score = fNode_fs.test_unique()
-                click.echo('NUKE: [%5s] %s' % (fNode_fs.score, fNode_fs) )
+            fNode_fs.score = fNode_fs.test_unique()
+            fNode_fs.shade_unique()
+
+            ## NOTE: This logic will *NOT* show BLESSED FILES as 'good' - SO DONT just RM DIR!!!
+            if kw['all']:
+                click.echo('[%7s] @ [%5s] %s' % (fNode_fs.status, fNode_fs.score, fNode_fs) )
+            else: ## Want more limited printing
+                if kw['good'] and fNode_fs.status in ['CHECK', 'NOTSURE', 'GOOD', 'unknown']:
+                    click.echo('[%7s] @ [%5s] %s' % (fNode_fs.status, fNode_fs.score, fNode_fs) )
+                if kw['nuke'] and fNode_fs.status in ['CURSED', 'NUKE']:
+                    click.echo('[%7s] @ [%5s] %s' % (fNode_fs.status, fNode_fs.score, fNode_fs) )
+                if kw['blessed'] and fNode_fs.status in ['BLESSED']:
+                    click.echo('[%7s] @ [%5s] %s' % (fNode_fs.status, fNode_fs.score, fNode_fs) )
 
 ## FIXME: Placeholder - NEEDS TO BE COMPLETED
-@click.command('clean')
+@click.command('X_clean')
 @with_appcontext
 def fs_clean_command(**kw):
-    """Clean - aka DELETE - files on the filesystem based on database."""
+    """INCOMPLETE - Clean - aka DELETE - files on the filesystem """
     dir_name = os.getcwd()
 
     for r, subs, files in os.walk(dir_name):
@@ -307,11 +348,11 @@ def fs_clean_command(**kw):
                 click.echo('%s' % (fNode) )
 
 ## FIXME: Placeholder - NEEDS TO BE COMPLETED
-@click.command('sweep')
+@click.command('X_sweep')
 @click.option('--dst-name', default=False)
 @with_appcontext
 def fs_sweep_command(**kw):
-    """Sweap files on the filesystem """
+    """ INCOMPLETE - Sweap files on the filesystem """
     dir_name = os.getcwd()
     if not kw['dst_name']: kw['dst_name'] = current_app.config['DST_DIR_NAME']
 
@@ -336,3 +377,46 @@ def fs_sweep_command(**kw):
 
                 ## Maybe green means it's not in DB and is new 
                 ##       purple means it is and should be deleted
+
+
+@click.argument('path', type=click.Path(exists=True, file_okay=True, 
+                 dir_okay=True, resolve_path=True), required=False)
+@click.command('hash_scan')
+@with_appcontext
+def hash_scan_command(path = False, **kw):
+    """ Populate the database wih confirmed files """
+    if not path: path = os.getcwd()
+
+    HASH_DB_PATH = 'sqlite:///' + '/Users/wjhuie/bin/instance/cleansweep_hashes.sqlite'
+    click.echo(HASH_DB_PATH)
+
+    db = dataset.connect(HASH_DB_PATH)
+    hash_ds = db['hashes']
+
+    def add_hash(fNode, table = hash_ds):
+        if table.find_one(abs_path=fNode.abs_path): return
+
+        fNode.get_hash()
+        entry = { 'abs_path': fNode.abs_path, 'sha1': fNode.sha1 }
+
+        try:
+            table.upsert(entry, ['abs_path'])
+            click.echo('HASH ADDED: %s # %s' % (fNode.sha1, fNode) )
+        except:
+            click.echo( "Error trying to ADD HASH: %s" % (fNode) )
+
+    if path and os.path.isfile(path):
+        fNode = AppDB.FileNode(path)
+        add_hash(fNode)
+        return
+
+    for r, subs, files in os.walk(path):
+        if not check_dir(r): continue ## Skip directories that don't pass
+
+        for f in files:
+            if not check_file( os.path.join(r, f) ): continue
+            fNode = AppDB.FileNode( os.path.join(r, f) )
+            add_hash(fNode)
+
+    hash_ds.create_index(['abs_path', 'sha1'])
+
