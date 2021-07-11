@@ -9,6 +9,29 @@ import hashlib
 
 from flask import current_app, g
 
+
+class Node():
+    def __init__(self, abs_path):
+        self.abs_path = abs_path
+        path, name = os.path.split(abs_path)
+        self.table_name = None
+        self.path = path
+        self.name = name or "/" ### If name is none, then path is "/" and we're root
+        self.color = ""
+
+    def __repr__(self):
+        return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
+
+    def db_delete(self):
+        db, ds = get_db()
+
+        statement = 'DELETE FROM %s WHERE abs_path = "%s"' % (self.table_name, self.abs_path)
+        for row in ds.query(statement):
+            print("DELETING: %s" % (row) ) ## Doesn't happen because DELETE query returns None
+
+    def db_add(self):
+        pass
+
 def close_db(e=None):
     ds = g.pop('ds', None)
     db = g.pop('db', None)
