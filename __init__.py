@@ -36,7 +36,7 @@ def create_app(test_config=None):
         data = { }
 
         try:
-            print("Search String:", request.form['search_string'])
+            print("Command:", request.form['search_string'])
         except:
             pass
 
