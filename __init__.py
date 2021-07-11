@@ -70,6 +70,7 @@ def create_app(test_config=None):
         if not directory: directory = os.getcwd()
 
         app.logger.debug("Scanning Directory: %s" % (directory) )
+        ## FIXME: ACTUALLY HAVE THIS SCAN SOMETHING
 
         ret['dir'] = directory
 
