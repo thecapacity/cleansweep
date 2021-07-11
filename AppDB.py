@@ -111,6 +111,54 @@ class FileNode(Node):
     def db_delete(self):
         Node.db_delete(self)
 
+    def get_hash(self):
+        if not self.sha1: ## Try to load from SHA1 HASH BB - definitely a speed hack
+            try:
+                if 'hash_cache' not in g:
+                    HASH_DB_PATH = 'sqlite:///' + current_app.config['CACHE']
+                    g.hash_cache = dataset.connect(HASH_DB_PATH)
+
+                hash_ds = g.hash_cache['hashes']
+
+                db_entry = hash_ds.find_one(abs_path=self.abs_path)
+
+                if db_entry:
+                    self.sha1 = db_entry['sha1']
+                    return self.sha1
+            ## FIXME: Doesn't nicely close HASHES_CACHE DB (add to close_db?)
+            ##        NOTE: dataset library may not need it
+            except:
+                pass ## Fall through if we can't find via HASHES_CACHE DB or throw error
+
+            ## rather than just recalculate - query DB to see if we're already stored
+            ## FIXME: Potential bug if DB file differs from filesystem version
+            ##        Based on the use case I'm willing to accept this risk
+            db, ds = get_db()
+            db_entry = ds[self.table_name].find_one(abs_path=self.abs_path)
+
+            if db_entry and 'size' in db_entry.keys() and self.size != db_entry['size']:
+                ## FIXME: This is an impartial / test to see if files are not ==
+                click.echo("get_hash: BAD SIZE + HASH for: %s" % (self.abs_path) )
+                self.sha1 = None
+            elif db_entry and 'sha1' in db_entry.keys():
+                self.sha1 = db_entry['sha1']
+            else:
+                self.sha1 = self.calculate_hash()
+
+        return self.sha1
+
+    def calculate_hash(self):
+        BLOCKSIZE = 65536
+        hasher = hashlib.sha1()
+
+        with open(self.abs_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+        h = hasher.hexdigest()
+        return h
+
 ### Database functions to get pointers / close, and drop
 def close_db(e=None):
     ds = g.pop('ds', None)
