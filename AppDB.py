@@ -62,6 +62,33 @@ class FileNode(Node):
 
         return self
 
+    def set_status(self, state = None):
+        self.status = state
+
+        ## FIXME: Maybe add a check to keep BLESSED and CURSED fixed no matter what
+        if "BLESSED" in state: 
+            ## purple = 'protect'
+            self.color = colored.bg('purple_1b')
+        elif "CURSED" in state: 
+            ## red = 'ready to nuke'
+            self.color = colored.bg('red_3a') + colored.attr(5) ## attr(5) is blink
+        elif "NUKE" in state:
+            ## red = 'ready to nuke'
+            self.color = colored.bg('red_3a')
+        elif "CHECK" in state:
+            ## orange = 'OR-ange you sure it's not a match'
+            self.color = colored.bg('dark_orange_3a')
+        elif "NOTSURE" in state:
+            ## new or navy = 'not sure | maybe unique - e.g. name seems to match'
+            self.color = colored.bg('navy_blue')
+        elif "GOOD" in state: ## Note, this means new to the DB - NOT to the full dir!!
+            ## green = 'good to store'
+            self.color = colored.bg('green')
+        elif "unknown" in state: # Default 'blue' for unknown
+            self.color = colored.bg('blue')
+        else: #default blue + blink for unlikely case of bad status flag
+            self.color = colored.bg('blue') + colored.attr(5)
+
 
 ### Database functions to get pointers / close, and drop
 def close_db(e=None):
