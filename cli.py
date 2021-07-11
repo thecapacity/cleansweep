@@ -15,6 +15,23 @@ from flask.cli import with_appcontext
 
 from . import AppDB
 
+def check_file(f):
+    if isinstance(f, str):
+        f = Path(f)
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+    else: #already a file object
+        return f.is_file() and not f.name.startswith('.') and os.path.getsize(f) > 0
+
+def check_dir(d):
+    if isinstance(d, str):
+        d = Path(d)
+        return d.is_dir() and not d.name.startswith('.') and not d.is_symlink() and not d.is_mount()
+    else: #already a dir object
+        return d.is_dir() and not d.name.startswith('.')
+
+
+
+### Database functions to get pointers / close, and drop
 def close_db_command(e = None):
     """Close the database"""
     try:
