@@ -29,10 +29,8 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    #endpoint for search
-    @app.route('/', methods=['GET'])
-    @app.route('/search', methods=['GET', 'POST'])
-    def search(**kwargs):
+    @app.route('/', methods=['GET', 'POST'])
+    def index(**kwargs):
         data = { }
 
         try:
@@ -41,6 +39,24 @@ def create_app(test_config=None):
             pass
 
         return render_template('search.html', data=data)
+
+
+    @app.route('/scan', methods=['GET'])
+    def scan(directory = None, **kwargs):
+        ret = { }
+
+        if not directory: directory = request.args.get('dir')
+        if not directory: directory = os.getcwd()
+
+        app.logger.debug("Scanning Directory: %s" % (directory) )
+
+        ret['dir'] = directory
+
+        return jsonify(ret)
+#        return json.dumps(ret), {'Content-Type': 'application/json'}
+#        return jsonify(ret), {'Content-Type': 'application/json'}
+
+
 
     def init_app(app):
         app.teardown_appcontext(cli.close_db_command)
