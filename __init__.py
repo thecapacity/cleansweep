@@ -38,7 +38,7 @@ def create_app(test_config=None):
         except:
             pass
 
-        return render_template('search.html', data=data)
+        return render_template('index.html', data=data)
 
 
     @app.route('/scan', methods=['GET'])
