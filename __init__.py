@@ -33,13 +33,33 @@ def create_app(test_config=None):
     @app.route('/', methods=['GET', 'POST'])
     def index(**kwargs):
         data = { }
+        examples = [ ]
+
+        try: print("Command:", request.form['search_string'])
+        except: pass
 
         try:
-            print("Command:", request.form['search_string'])
-        except:
-            pass
+            data['HASH_DB_PATH'] = 'sqlite:///' + \
+                                    os.path.join(app.instance_path, 'cleansweep_hashes.sqlite')
+            hash_cache = dataset.connect( data['HASH_DB_PATH'] )
+            hash_ds = hash_cache['hashes']
 
-        return render_template('index.html', data=data)
+            data['status'] = "SUCCESS GETTING A CACHE"
+            data['tables'] = hash_cache.tables
+            data['columns'] = hash_ds.columns
+            data['entries'] = len(hash_cache['hashes'])
+
+            result = hash_cache.query('SELECT * FROM hashes LIMIT 10')
+            examples = [row for row in result]
+
+            #data['files'] = hash_ds['hashes'].all()
+            #db_entry = hash_ds.find_one(abs_path=self.abs_path)
+            #data['files'] = db_entry.__dict__.copy()
+
+        except:
+            data = { 'status': "ERROR getting HASH CACHE" }
+
+        return render_template('index.html', data=data, examples=examples)
 
 
     @app.route('/scan', methods=['GET'])
