@@ -88,6 +88,28 @@ class FileNode(Node):
         else: #default blue + blink for unlikely case of bad status flag
             self.color = colored.bg('blue') + colored.attr(5)
 
+    def db_add(self):
+        ### Will CREATE or UPDATE based on abs_path as unique key
+        ##
+        ## FIXME: May overwrite "BLESSED" / "CURSED" e.g. with something like "unknown"
+        ## FIXME: Consider only saving BLESSED | CURSED | unknown states even if "GOOD"
+        db, ds = get_db()
+        table = ds[self.table_name]
+
+        if not self.sha1: self.get_hash()
+
+        entry = self.__dict__.copy()
+        entry.pop('color')
+        entry.pop('table_name')
+
+        try:
+            table = ds[self.table_name]
+            table.upsert(entry, ['abs_path'])
+        except:
+            click.echo( "Error trying to ADD FILE: %s" % (self.abs_path) )
+
+    def db_delete(self):
+        Node.db_delete(self)
 
 ### Database functions to get pointers / close, and drop
 def close_db(e=None):
