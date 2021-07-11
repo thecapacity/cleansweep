@@ -34,6 +34,8 @@ class Node():
     def db_add(self):
         pass
 
+
+
 ### Database functions to get pointers / close, and drop
 def close_db(e=None):
     ds = g.pop('ds', None)
