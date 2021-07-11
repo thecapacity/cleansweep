@@ -36,6 +36,33 @@ class Node():
 
 
 
+class FileNode(Node):
+    def __init__(self, info):
+        self.table_name = 'files'
+
+        if isinstance(info, str): # if we get a string we're loading via filesystem
+            abs_path = info
+            Node.__init__(self, abs_path)
+
+            self.status = "unknown"
+            self.set_status(self.status)
+
+            self.size = os.path.getsize(abs_path)
+            self.sha1 = None ## Don't auto hash for sha1, rely on get_hash() call
+
+        else: #Otherwise assume we're loading an OrderedDict from the DB
+            abs_path = info['abs_path']
+            Node.__init__(self, abs_path)
+
+            self.status = "unknown"
+            self.set_status( info['status'] )
+
+            self.size = info['size']
+            self.sha1 = info['sha1']
+
+        return self
+
+
 ### Database functions to get pointers / close, and drop
 def close_db(e=None):
     ds = g.pop('ds', None)
