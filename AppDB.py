@@ -35,7 +35,6 @@ class Node():
         pass
 
 
-
 class FileNode(Node):
     def __init__(self, info):
         self.table_name = 'files'
