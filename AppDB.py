@@ -19,6 +19,8 @@ class Node():
         self.name = name or "/" ### If name is none, then path is "/" and we're root
         self.color = ""
 
+        return self
+
     def __repr__(self):
         return self.color + os.path.join(self.path, self.name) + colored.attr('reset')
 
